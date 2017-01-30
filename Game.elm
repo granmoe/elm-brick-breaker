@@ -1,11 +1,13 @@
 module Game exposing (..)
 
-import Html exposing (Html, text)
+import Html exposing (Html, div, Attribute )
+import Html.Attributes exposing (style)
 import Keyboard exposing (KeyCode)
 import AnimationFrame
 import Time exposing (Time)
 import Key exposing (..)
-
+import Svg exposing (..)
+import Svg.Attributes exposing (..)
 
 main : Program Never Model Msg
 main =
@@ -83,9 +85,30 @@ updateVelocity newVelocity model =
 
 
 -- VIEW
+wrapperStyle : Html.Attribute msg
+wrapperStyle =
+    Html.Attributes.style
+    [ ("backgroundColor", "papayaWhip")
+    , ("position", "fixed")
+    , ("top", "0")
+    , ("right", "0")
+    , ("bottom", "0")
+    , ("left", "0")
+    , ("padding", "10%")
+    ]
+
 view : Model -> Html msg
 view model =
-    text (toString model)
+    div [ wrapperStyle ]
+        [
+            svg
+                [ width "100%", height "100%", viewBox "0 0 1000 1000" ]
+                [ 
+                    rect
+                    [ fill "black", x "0", y "0", width "1000", height "1000" ]
+                    []
+                ]
+        ]
 
 
 -- SUBSCRIPTIONS
