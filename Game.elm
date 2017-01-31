@@ -23,13 +23,40 @@ type alias Model =
     { velocity : Float
     , position : Float
     , shotsFired : Int
+    , paddle : Coords
+    , ball : Coords
+    , bricks : List Coords
+    , lostGame : Bool
+    , wonGame : Bool
     }
+
+type alias Coords = 
+    {
+        x : Int,
+        y : Int
+    }
+
+bricks : List Coords
+bricks = [
+        { x = 0, y = 0 }
+    ]
 
 model : Model
 model =
     { velocity = 0
     , position = 0
     , shotsFired = 0
+    , paddle = {
+            x = 450,
+            y = 940
+        }
+    , ball = {
+            x = 450,
+            y = 925
+        }
+    , bricks = bricks
+    , lostGame = False
+    , wonGame = False
     }
 
 init : ( Model, Cmd Msg )
@@ -107,9 +134,15 @@ view model =
                     rect
                     [ fill "black", x "0", y "0", width "1000", height "1000" ]
                     []
+                    , paddle model
                 ]
         ]
 
+paddle : Model -> Html msg
+paddle model =
+    rect
+    [ fill "white", x "450", y "940", width "100", height "25", rx "5", ry "5" ]
+    []
 
 -- SUBSCRIPTIONS
 subscriptions : Model -> Sub Msg
