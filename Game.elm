@@ -58,8 +58,8 @@ model =
             velocityY = 0
         }
     , ball = {
-            x = 450,
-            y = 900,
+            x = 500,
+            y = 600,
             velocityX = 0,
             velocityY = -5
         }
@@ -132,7 +132,7 @@ updatePaddleVelocity paddle velocityX = { paddle | velocityX = velocityX }
 wrapperStyle : Html.Attribute msg
 wrapperStyle =
     Html.Attributes.style
-    [ ("backgroundColor", "papayaWhip")
+    [ ("backgroundColor", "papayawhip")
     , ("position", "fixed")
     , ("top", "0")
     , ("right", "0")
@@ -152,13 +152,20 @@ view model =
                     [ fill "black", x "0", y "0", width "1000", height "1000" ]
                     []
                     , paddle model
+                    , ball model
                 ]
         ]
 
 paddle : Model -> Html msg
 paddle model =
     rect
-    [ fill "white", x <| toString model.paddle.x, y <| toString model.paddle.y, width "150", height "25", rx "5", ry "5" ]
+    [ fill "gainsboro", x <| toString model.paddle.x, y <| toString model.paddle.y, width "150", height "25", rx "5", ry "5" ]
+    []
+
+ball : Model -> Html msg
+ball model =
+    circle
+    [ fill "white", cx <| toString model.ball.x, cy <| toString model.ball.y, r "10" ]
     []
 
 -- SUBSCRIPTIONS
