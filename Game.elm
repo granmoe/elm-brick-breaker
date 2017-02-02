@@ -61,7 +61,7 @@ model =
             x = 500,
             y = 600,
             velocityX = 0,
-            velocityY = -5
+            velocityY = 5
         }
     , bricks = bricks
     , lostGame = False
@@ -111,22 +111,37 @@ keyUp keyCode model =
             model
 
 applyPhysics : Float -> Model -> Model
-applyPhysics dt model = { model | paddle = updatePaddlePosition dt model.paddle }
+applyPhysics dt model = 
+-- TODO: Check for collisions and handle them here
+    { model
+        | paddle = updatePaddlePosition dt model.paddle
+        , ball = updateBallPosition dt model.ball
+        }
 
-updatePaddlePosition : Time -> Movable(GameObject) -> Paddle
-updatePaddlePosition dt paddle = 
+updatePosition : Float -> Float -> Time -> Float -> Float -> Float
+updatePosition lowerBound upperBound dt position velocity = 
     let
-        newX = paddle.x + paddle.velocityX * dt / 16
+        newPosition = position + velocity * dt / 16
     in
-        if (newX < 0) then
-            { paddle | x = 0 } 
-        else if (newX > 850) then 
-            { paddle | x = 850 } 
+        if (newPosition < lowerBound) then
+            lowerBound            
+        else if (newPosition > upperBound) then 
+            upperBound
         else
-            { paddle | x = newX }
+            newPosition
+
+updatePaddlePosition : Time -> Paddle -> Paddle
+updatePaddlePosition time paddle = { paddle | x = updatePosition 0 850 time paddle.x paddle.velocityX }
 
 updatePaddleVelocity : Paddle -> Float -> Paddle
 updatePaddleVelocity paddle velocityX = { paddle | velocityX = velocityX }
+
+updateBallPosition : Time -> Ball -> Ball
+updateBallPosition time ball = 
+    { ball 
+        | x = updatePosition 10 990 time ball.x ball.velocityX
+        , y = updatePosition 10 2000 time ball.y ball.velocityY 
+        }
 
 -- VIEW
 wrapperStyle : Html.Attribute msg
