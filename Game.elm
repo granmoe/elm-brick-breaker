@@ -1,4 +1,4 @@
-module Game exposing (..)
+module Game exposing (main)
 
 import Html exposing (Html, div, Attribute )
 import Html.Attributes exposing (style)
@@ -20,39 +20,48 @@ main =
 
 -- MODEL
 type alias Model =
-    { velocity : Float
-    , position : Float
-    , shotsFired : Int
-    , paddle : Coords
-    , ball : Coords
-    , bricks : List Coords
+    { paddle : Paddle
+    , ball : Ball
+    , bricks : List GameObject
     , lostGame : Bool
     , wonGame : Bool
     }
 
-type alias Coords = 
+type alias GameObject = 
     {
-        x : Int,
-        y : Int
+        x : Float,
+        y : Float
     }
 
-bricks : List Coords
+type alias Movable a = 
+    {
+        a |
+        velocityX : Float, 
+        velocityY : Float
+    }
+
+type alias Paddle = Movable(GameObject)
+type alias Ball = Movable(GameObject)
+
+-- TODO
+bricks : List GameObject
 bricks = [
         { x = 0, y = 0 }
     ]
 
 model : Model
 model =
-    { velocity = 0
-    , position = 0
-    , shotsFired = 0
-    , paddle = {
-            x = 450,
-            y = 940
+    { paddle = {
+            x = 425,
+            y = 940,
+            velocityX = 0,
+            velocityY = 0
         }
     , ball = {
             x = 450,
-            y = 925
+            y = 900,
+            velocityX = 0,
+            velocityY = -5
         }
     , bricks = bricks
     , lostGame = False
@@ -62,7 +71,6 @@ model =
 init : ( Model, Cmd Msg )
 init =
     ( model, Cmd.none )
-
 
 -- UPDATE
 type Msg
@@ -86,9 +94,9 @@ keyDown keyCode model =
         R ->
             Tuple.first init
         ArrowLeft ->
-            updateVelocity -1.0 model
+            { model | paddle = updatePaddleVelocity model.paddle -5.0 }
         ArrowRight ->
-            updateVelocity 1.0 model
+            { model | paddle = updatePaddleVelocity model.paddle 5.0 }
         _ ->
             model
 
@@ -96,20 +104,29 @@ keyUp : KeyCode -> Model -> Model
 keyUp keyCode model =
     case Key.fromCode keyCode of
         ArrowLeft ->
-            updateVelocity 0 model
+            { model | paddle = updatePaddleVelocity model.paddle 0 }
         ArrowRight ->
-            updateVelocity 0 model
+            { model | paddle = updatePaddleVelocity model.paddle 0 }
         _ ->
             model
 
 applyPhysics : Float -> Model -> Model
-applyPhysics dt model =
-    { model | position = model.position + model.velocity * dt }
+applyPhysics dt model = { model | paddle = updatePaddlePosition dt model.paddle }
 
-updateVelocity : Float -> Model -> Model
-updateVelocity newVelocity model =
-    { model | velocity = newVelocity }
+updatePaddlePosition : Time -> Movable(GameObject) -> Paddle
+updatePaddlePosition dt paddle = 
+    let
+        newX = paddle.x + paddle.velocityX * dt / 16
+    in
+        if (newX < 0) then
+            { paddle | x = 0 } 
+        else if (newX > 850) then 
+            { paddle | x = 850 } 
+        else
+            { paddle | x = newX }
 
+updatePaddleVelocity : Paddle -> Float -> Paddle
+updatePaddleVelocity paddle velocityX = { paddle | velocityX = velocityX }
 
 -- VIEW
 wrapperStyle : Html.Attribute msg
@@ -141,7 +158,7 @@ view model =
 paddle : Model -> Html msg
 paddle model =
     rect
-    [ fill "white", x "450", y "940", width "100", height "25", rx "5", ry "5" ]
+    [ fill "white", x <| toString model.paddle.x, y <| toString model.paddle.y, width "150", height "25", rx "5", ry "5" ]
     []
 
 -- SUBSCRIPTIONS
