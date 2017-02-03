@@ -5,9 +5,11 @@ import Html.Attributes exposing (style)
 import Keyboard exposing (KeyCode)
 import AnimationFrame
 import Time exposing (Time)
-import Key exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
+
+import Key exposing (..)
+import Model exposing (model, Model, GameObject)
 
 main : Program Never Model Msg
 main =
@@ -18,66 +20,15 @@ main =
         , subscriptions = subscriptions
         }
 
--- MODEL
-type alias Model =
-    { paddle : Paddle
-    , ball : Ball
-    , bricks : List GameObject
-    , lostGame : Bool
-    , wonGame : Bool
-    }
-
-type alias GameObject = 
-    {
-        x : Float,
-        y : Float
-    }
-
-type alias Movable a = 
-    {
-        a |
-        velocityX : Float, 
-        velocityY : Float
-    }
-
-type alias Paddle = Movable(GameObject)
-type alias Ball = Movable(GameObject)
-
--- TODO
-bricks : List GameObject
-bricks = [
-        { x = 0, y = 0 }
-    ]
-
-model : Model
-model =
-    { paddle = {
-            x = 425,
-            y = 940,
-            velocityX = 0,
-            velocityY = 0
-        }
-    , ball = {
-            x = 500,
-            y = 600,
-            velocityX = 0,
-            velocityY = 5
-        }
-    , bricks = bricks
-    , lostGame = False
-    , wonGame = False
-    }
-
 init : ( Model, Cmd Msg )
-init =
-    ( model, Cmd.none )
+init = ( model, Cmd.none )
 
--- UPDATE
 type Msg
     = TimeUpdate Time
     | KeyDown KeyCode
     | KeyUp KeyCode
 
+-- UPDATE
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -112,11 +63,14 @@ keyUp keyCode model =
 
 applyPhysics : Float -> Model -> Model
 applyPhysics dt model = 
--- TODO: Check for collisions and handle them here
-    { model
-        | paddle = updatePaddlePosition dt model.paddle
-        , ball = updateBallPosition dt model.ball
-        }
+    let
+        { ball, bricks } = collideObjects model
+    in
+        { model
+            | paddle = updatePaddlePosition dt model.paddle
+            , ball = updateBallPosition dt ball
+            , bricks = bricks
+            }
 
 updatePosition : Float -> Float -> Time -> Float -> Float -> Float
 updatePosition lowerBound upperBound dt position velocity = 
@@ -130,18 +84,41 @@ updatePosition lowerBound upperBound dt position velocity =
         else
             newPosition
 
-updatePaddlePosition : Time -> Paddle -> Paddle
-updatePaddlePosition time paddle = { paddle | x = updatePosition 0 850 time paddle.x paddle.velocityX }
+updatePaddlePosition : Time -> GameObject -> GameObject
+updatePaddlePosition time paddle = { paddle | x = updatePosition 0 850 time paddle.x paddle.vx }
 
-updatePaddleVelocity : Paddle -> Float -> Paddle
-updatePaddleVelocity paddle velocityX = { paddle | velocityX = velocityX }
+updatePaddleVelocity : GameObject -> Float -> GameObject
+updatePaddleVelocity paddle vx = { paddle | vx = vx }
 
-updateBallPosition : Time -> Ball -> Ball
+updateBallPosition : Time -> GameObject -> GameObject
 updateBallPosition time ball = 
     { ball 
-        | x = updatePosition 10 990 time ball.x ball.velocityX
-        , y = updatePosition 10 2000 time ball.y ball.velocityY 
+        | x = updatePosition 10 990 time ball.x ball.vx
+        , y = updatePosition 10 2000 time ball.y ball.vy 
         }
+
+collideObjects : Model -> Model
+collideObjects model =
+    let 
+        { uncollidedBricks } = checkBrickCollisions model.ball model.bricks
+        collidedObject = getCollidedObject model
+    in
+        { model
+            | ball = updateBallVelocity model.ball collidedObject
+            , bricks = uncollidedBricks
+            }
+
+checkBrickCollisions : GameObject -> List GameObject -> { uncollidedBricks : List GameObject }
+checkBrickCollisions ball bricks =
+    {
+        uncollidedBricks = []
+    }
+
+getCollidedObject : Model -> Maybe GameObject
+getCollidedObject model = Just model.paddle
+
+updateBallVelocity : GameObject -> Maybe GameObject -> GameObject
+updateBallVelocity ball collidedObject = ball
 
 -- VIEW
 wrapperStyle : Html.Attribute msg
