@@ -2,7 +2,9 @@ module Model exposing (Model, model, GameObject)
 
 -- MODEL
 type alias Model =
-    { paddle : GameObject
+    { width : Float
+    , height : Float
+    , paddle : GameObject
     , ball : GameObject
     , bricks : List GameObject
     , lostGame : Bool
@@ -27,7 +29,9 @@ bricks = [
 
 model : Model
 model =
-    { paddle = {
+    { width = 1000
+    , height = 1000
+    , paddle = {
             x = 425,
             y = 940,
             vx = 0,
