@@ -151,13 +151,13 @@ view model =
 paddle : Model -> Html msg
 paddle model =
     rect
-    [ fill "gainsboro", x <| toString model.paddle.x, y <| toString model.paddle.y, width "150", height "25", rx "5", ry "5" ]
+    [ fill "gainsboro", x <| toString model.paddle.x, y <| toString model.paddle.y, width <| toString model.paddle.width, height <| toString model.paddle.height, rx "5", ry "5" ]
     []
 
 ball : Model -> Html msg
 ball model =
     circle
-    [ fill "white", cx <| toString model.ball.x, cy <| toString model.ball.y, r "10" ]
+    [ fill "white", cx <| toString model.ball.x, cy <| toString model.ball.y, r <| toString model.ball.width ]
     []
 
 -- SUBSCRIPTIONS
