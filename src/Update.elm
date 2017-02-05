@@ -16,8 +16,8 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        TimeUpdate dt ->
-            ( applyPhysics dt model, Cmd.none )
+        TimeUpdate time ->
+            ( applyPhysics model time, Cmd.none )
 
         KeyDown keyCode ->
             ( keyDown keyCode model, Cmd.none )
@@ -55,11 +55,43 @@ keyUp keyCode model =
             model
 
 
-applyPhysics : Float -> Model -> Model
-applyPhysics dt model =
-    { model
-        | paddle = updatePaddlePosition dt model.paddle
-        , ball = updateBallPosition dt model.ball
+updatePaddleVelocity : GameObject -> Float -> GameObject
+updatePaddleVelocity paddle vx =
+    { paddle | vx = vx }
+
+
+applyPhysics : Model -> Float -> Model
+applyPhysics model time =
+    -- TODO: Eventally should be this:
+    -- updatePositions >> updateHitboxes >> calculateCollisions >> updateFromCollisions model time
+    updatePositions model time
+
+
+updatePositions : Model -> Float -> Model
+updatePositions model time =
+    let
+        ball =
+            updateBallPosition model.ball time
+
+        paddle =
+            updatePaddlePosition model.paddle time
+    in
+        { model
+            | ball = ball
+            , paddle = paddle
+        }
+
+
+updatePaddlePosition : GameObject -> Time -> GameObject
+updatePaddlePosition paddle time =
+    { paddle | x = updatePosition 0 850 time paddle.x paddle.vx }
+
+
+updateBallPosition : GameObject -> Time -> GameObject
+updateBallPosition ball time =
+    { ball
+        | x = updatePosition 10 990 time ball.x ball.vx
+        , y = updatePosition 10 2000 time ball.y ball.vy
     }
 
 
@@ -77,26 +109,9 @@ updatePosition lowerBound upperBound dt position velocity =
             newPosition
 
 
-updatePaddlePosition : Time -> GameObject -> GameObject
-updatePaddlePosition time paddle =
-    { paddle | x = updatePosition 0 850 time paddle.x paddle.vx }
-
-
-updatePaddleVelocity : GameObject -> Float -> GameObject
-updatePaddleVelocity paddle vx =
-    { paddle | vx = vx }
-
-
-updateBallPosition : Time -> GameObject -> GameObject
-updateBallPosition time ball =
-    { ball
-        | x = updatePosition 10 990 time ball.x ball.vx
-        , y = updatePosition 10 2000 time ball.y ball.vy
-    }
-
-
 updateBallVelocity : GameObject -> Maybe GameObject -> GameObject
 updateBallVelocity ball collidedObject =
+    -- TODO contribute some of collidedObject's velocity to ball
     ball
 
 
