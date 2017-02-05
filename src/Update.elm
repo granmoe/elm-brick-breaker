@@ -64,7 +64,30 @@ applyPhysics : Model -> Float -> Model
 applyPhysics model time =
     -- TODO: Eventally should be this:
     -- updatePositions >> updateHitboxes >> calculateCollisions >> updateFromCollisions model time
-    updatePositions model time
+    -- or maybe use a monad
+    updatePositions model time |> updateHitboxes
+
+
+updateHitboxes : Model -> Model
+updateHitboxes model =
+    let
+        paddle =
+            updateHitbox model.paddle
+
+        ball =
+            updateHitbox model.ball
+    in
+        { model
+            | paddle = paddle
+            , ball = ball
+        }
+
+
+updateHitbox : GameObject -> GameObject
+updateHitbox gameObject =
+    { gameObject
+        | hitbox = [ ( gameObject.x, gameObject.x + gameObject.width ), ( gameObject.y, gameObject.y + gameObject.height ) ]
+    }
 
 
 updatePositions : Model -> Float -> Model
