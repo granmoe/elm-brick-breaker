@@ -30,7 +30,7 @@ keyDown : KeyCode -> Model -> Model
 keyDown keyCode model =
     case fromCode keyCode of
         Key.R ->
-            model
+            Model.model
 
         Key.ArrowLeft ->
             { model | paddle = updatePaddleVelocity model.paddle -5.0 }
