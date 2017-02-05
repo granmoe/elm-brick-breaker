@@ -1,8 +1,8 @@
-module Game exposing (main)
+module Main exposing (main)
 
-import Html exposing (Html, div, Attribute )
+import Html exposing (program)
+
 import View exposing (view)
-
 import Model exposing (model, Model)
 import Update exposing (Msg, update, subscriptions)
 
@@ -11,9 +11,9 @@ init = ( model, Cmd.none )
 
 main : Program Never Model Msg
 main =
-    Html.program
+    program
         { init = init
-        , view = View.view
+        , view = view
         , update = update
         , subscriptions = subscriptions
         }
