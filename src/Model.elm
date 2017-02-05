@@ -1,6 +1,4 @@
-module Model exposing (Model, model, GameObject)
-
--- MODEL
+module Model exposing (Model, model, GameObject, Edge)
 
 
 type alias Model =
@@ -27,6 +25,11 @@ type Edge
     | Left Line
 
 
+type alias Hitbox =
+    -- [(x1, x2), (y1, y2)]
+    List ( Float, Float )
+
+
 type alias GameObject =
     { x : Float
     , y : Float
@@ -34,16 +37,23 @@ type alias GameObject =
     , vy : Float
     , width : Float
     , height : Float
+    , hitbox : Hitbox
     }
-
-
-
--- TODO
 
 
 bricks : List GameObject
 bricks =
-    [ { x = 0, y = 0, vx = 0, vy = 0, width = 10, height = 10 }
+    [ { x = 0
+      , y = 0
+      , vx = 0
+      , vy = 0
+      , width = 10
+      , height = 10
+      , hitbox =
+            [ ( 0, 0 )
+            , ( 0, 0 )
+            ]
+      }
     ]
 
 
@@ -58,6 +68,10 @@ model =
         , vy = 0
         , width = 150
         , height = 25
+        , hitbox =
+            [ ( 425, 575 )
+            , ( 940, 965 )
+            ]
         }
     , ball =
         { x = 500
@@ -66,6 +80,10 @@ model =
         , vy = 5
         , width = 10
         , height = 10
+        , hitbox =
+            [ ( 500, 510 )
+            , ( 600, 610 )
+            ]
         }
     , bricks = bricks
     , lostGame = False
