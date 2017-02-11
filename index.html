@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html><head><meta charset="UTF-8"><title>Game</title><style>html,head,body { padding:0; margin:0; }
+<html><head><meta charset="UTF-8"><title>Main</title><style>html,head,body { padding:0; margin:0; }
 body { font-family: calibri, helvetica, arial, sans-serif; }</style><script type="text/javascript">
 (function() {
 'use strict';
@@ -9400,27 +9400,72 @@ var _ohanhi$elm_game_base$Key$fromCode = function (keyCode) {
 			return _ohanhi$elm_game_base$Key$Unknown;
 	}
 };
+var _ohanhi$elm_game_base$Model$Model = F7(
+	function (a, b, c, d, e, f, g) {
+		return {width: a, height: b, paddle: c, ball: d, bricks: e, lostGame: f, wonGame: g};
+	});
+var _ohanhi$elm_game_base$Model$Hitbox = F2(
+	function (a, b) {
+		return {xs: a, ys: b};
+	});
+var _ohanhi$elm_game_base$Model$GameObject = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {x: a, y: b, vx: c, vy: d, width: e, height: f, hitbox: g, objectType: h};
+	});
+var _ohanhi$elm_game_base$Model$Ball = {ctor: 'Ball'};
+var _ohanhi$elm_game_base$Model$Paddle = {ctor: 'Paddle'};
+var _ohanhi$elm_game_base$Model$Brick = {ctor: 'Brick'};
 var _ohanhi$elm_game_base$Model$bricks = {
 	ctor: '::',
-	_0: {x: 0, y: 0, vx: 0, vy: 0, width: 10, height: 10},
+	_0: {
+		x: 0,
+		y: 0,
+		vx: 0,
+		vy: 0,
+		width: 10,
+		height: 10,
+		hitbox: {
+			xs: {ctor: '_Tuple2', _0: 0, _1: 0},
+			ys: {ctor: '_Tuple2', _0: 0, _1: 0}
+		},
+		objectType: _ohanhi$elm_game_base$Model$Brick
+	},
 	_1: {ctor: '[]'}
 };
 var _ohanhi$elm_game_base$Model$model = {
-	paddle: {x: 425, y: 940, vx: 0, vy: 0, width: 150, height: 25},
-	ball: {x: 500, y: 600, vx: 0, vy: 5, width: 10, height: 10},
+	width: 1000,
+	height: 1000,
+	paddle: {
+		x: 425,
+		y: 940,
+		vx: 0,
+		vy: 0,
+		width: 150,
+		height: 25,
+		hitbox: {
+			xs: {ctor: '_Tuple2', _0: 425, _1: 575},
+			ys: {ctor: '_Tuple2', _0: 940, _1: 965}
+		},
+		objectType: _ohanhi$elm_game_base$Model$Paddle
+	},
+	ball: {
+		x: 500,
+		y: 600,
+		vx: 4,
+		vy: 5,
+		width: 10,
+		height: 10,
+		hitbox: {
+			xs: {ctor: '_Tuple2', _0: 500, _1: 510},
+			ys: {ctor: '_Tuple2', _0: 600, _1: 610}
+		},
+		objectType: _ohanhi$elm_game_base$Model$Ball
+	},
 	bricks: _ohanhi$elm_game_base$Model$bricks,
 	lostGame: false,
 	wonGame: false
 };
-var _ohanhi$elm_game_base$Model$Model = F5(
-	function (a, b, c, d, e) {
-		return {paddle: a, ball: b, bricks: c, lostGame: d, wonGame: e};
-	});
-var _ohanhi$elm_game_base$Model$GameObject = F6(
-	function (a, b, c, d, e, f) {
-		return {x: a, y: b, vx: c, vy: d, width: e, height: f};
-	});
-var _ohanhi$elm_game_base$Game$ball = function (model) {
+var _ohanhi$elm_game_base$View$ball = function (model) {
 	return A2(
 		_elm_lang$svg$Svg$circle,
 		{
@@ -9445,7 +9490,7 @@ var _ohanhi$elm_game_base$Game$ball = function (model) {
 		},
 		{ctor: '[]'});
 };
-var _ohanhi$elm_game_base$Game$paddle = function (model) {
+var _ohanhi$elm_game_base$View$paddle = function (model) {
 	return A2(
 		_elm_lang$svg$Svg$rect,
 		{
@@ -9483,7 +9528,7 @@ var _ohanhi$elm_game_base$Game$paddle = function (model) {
 		},
 		{ctor: '[]'});
 };
-var _ohanhi$elm_game_base$Game$wrapperStyle = _elm_lang$html$Html_Attributes$style(
+var _ohanhi$elm_game_base$View$wrapperStyle = _elm_lang$html$Html_Attributes$style(
 	{
 		ctor: '::',
 		_0: {ctor: '_Tuple2', _0: 'backgroundColor', _1: 'papayawhip'},
@@ -9513,12 +9558,14 @@ var _ohanhi$elm_game_base$Game$wrapperStyle = _elm_lang$html$Html_Attributes$sty
 			}
 		}
 	});
-var _ohanhi$elm_game_base$Game$view = function (model) {
+var _ohanhi$elm_game_base$View$view = function (model) {
+	var gameHeight = _elm_lang$core$Basics$toString(model.height);
+	var gameWidth = _elm_lang$core$Basics$toString(model.width);
 	return A2(
 		_elm_lang$html$Html$div,
 		{
 			ctor: '::',
-			_0: _ohanhi$elm_game_base$Game$wrapperStyle,
+			_0: _ohanhi$elm_game_base$View$wrapperStyle,
 			_1: {ctor: '[]'}
 		},
 		{
@@ -9533,7 +9580,14 @@ var _ohanhi$elm_game_base$Game$view = function (model) {
 						_0: _elm_lang$svg$Svg_Attributes$height('100%'),
 						_1: {
 							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$viewBox('0 0 1000 1000'),
+							_0: _elm_lang$svg$Svg_Attributes$viewBox(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'0 0 ',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										gameWidth,
+										A2(_elm_lang$core$Basics_ops['++'], ' ', gameHeight)))),
 							_1: {ctor: '[]'}
 						}
 					}
@@ -9553,10 +9607,10 @@ var _ohanhi$elm_game_base$Game$view = function (model) {
 									_0: _elm_lang$svg$Svg_Attributes$y('0'),
 									_1: {
 										ctor: '::',
-										_0: _elm_lang$svg$Svg_Attributes$width('1000'),
+										_0: _elm_lang$svg$Svg_Attributes$width(gameWidth),
 										_1: {
 											ctor: '::',
-											_0: _elm_lang$svg$Svg_Attributes$height('1000'),
+											_0: _elm_lang$svg$Svg_Attributes$height(gameHeight),
 											_1: {ctor: '[]'}
 										}
 									}
@@ -9566,10 +9620,10 @@ var _ohanhi$elm_game_base$Game$view = function (model) {
 						{ctor: '[]'}),
 					_1: {
 						ctor: '::',
-						_0: _ohanhi$elm_game_base$Game$paddle(model),
+						_0: _ohanhi$elm_game_base$View$paddle(model),
 						_1: {
 							ctor: '::',
-							_0: _ohanhi$elm_game_base$Game$ball(model),
+							_0: _ohanhi$elm_game_base$View$ball(model),
 							_1: {ctor: '[]'}
 						}
 					}
@@ -9577,169 +9631,192 @@ var _ohanhi$elm_game_base$Game$view = function (model) {
 			_1: {ctor: '[]'}
 		});
 };
-var _ohanhi$elm_game_base$Game$updateBallVelocity = F2(
+var _ohanhi$elm_game_base$Update$updateBallVelocity = F2(
 	function (ball, collidedObject) {
 		return ball;
 	});
-var _ohanhi$elm_game_base$Game$getCollidedObject = function (model) {
-	return _elm_lang$core$Maybe$Just(model.paddle);
-};
-var _ohanhi$elm_game_base$Game$checkBrickCollisions = F2(
-	function (ball, bricks) {
-		return {
-			uncollidedBricks: {ctor: '[]'}
-		};
+var _ohanhi$elm_game_base$Update$collideBallWithWalls = F3(
+	function (ball, maxX, maxY) {
+		var vy = ((_elm_lang$core$Native_Utils.cmp(ball.y, 0) < 0) || (_elm_lang$core$Native_Utils.cmp(ball.y, maxY) > 0)) ? (0 - ball.vy) : ball.vy;
+		var vx = ((_elm_lang$core$Native_Utils.cmp(ball.x, 0) < 0) || (_elm_lang$core$Native_Utils.cmp(ball.x, maxX) > 0)) ? (0 - ball.vx) : ball.vx;
+		return _elm_lang$core$Native_Utils.update(
+			ball,
+			{vx: vx, vy: vy});
 	});
-var _ohanhi$elm_game_base$Game$collideObjects = function (model) {
-	var collidedObject = _ohanhi$elm_game_base$Game$getCollidedObject(model);
-	var _p0 = A2(_ohanhi$elm_game_base$Game$checkBrickCollisions, model.ball, model.bricks);
-	var uncollidedBricks = _p0.uncollidedBricks;
+var _ohanhi$elm_game_base$Update$handleWallCollisions = function (model) {
+	var ball = A3(_ohanhi$elm_game_base$Update$collideBallWithWalls, model.ball, model.width, model.height);
 	return _elm_lang$core$Native_Utils.update(
 		model,
+		{ball: ball});
+};
+var _ohanhi$elm_game_base$Update$updateHitbox = function (gameObject) {
+	return _elm_lang$core$Native_Utils.update(
+		gameObject,
 		{
-			ball: A2(_ohanhi$elm_game_base$Game$updateBallVelocity, model.ball, collidedObject),
-			bricks: uncollidedBricks
+			hitbox: {
+				xs: {ctor: '_Tuple2', _0: gameObject.x, _1: gameObject.x + gameObject.width},
+				ys: {ctor: '_Tuple2', _0: gameObject.y, _1: gameObject.y + gameObject.height}
+			}
 		});
 };
-var _ohanhi$elm_game_base$Game$updatePaddleVelocity = F2(
+var _ohanhi$elm_game_base$Update$updateHitboxes = function (model) {
+	var ball = _ohanhi$elm_game_base$Update$updateHitbox(model.ball);
+	var paddle = _ohanhi$elm_game_base$Update$updateHitbox(model.paddle);
+	return _elm_lang$core$Native_Utils.update(
+		model,
+		{paddle: paddle, ball: ball});
+};
+var _ohanhi$elm_game_base$Update$clampPosition = F3(
+	function (gameObject, maxX, maxY) {
+		var y = (_elm_lang$core$Native_Utils.cmp(gameObject.y, 0) < 0) ? 0 : ((_elm_lang$core$Native_Utils.cmp(gameObject.y, maxY) > 0) ? maxY : gameObject.y);
+		var x = (_elm_lang$core$Native_Utils.cmp(gameObject.x, 0) < 0) ? 0 : ((_elm_lang$core$Native_Utils.cmp(gameObject.x, maxX) > 0) ? maxX : gameObject.x);
+		return _elm_lang$core$Native_Utils.update(
+			gameObject,
+			{x: x, y: y});
+	});
+var _ohanhi$elm_game_base$Update$updatePosition = F3(
+	function (dt, position, velocity) {
+		return position + ((velocity * dt) / 16);
+	});
+var _ohanhi$elm_game_base$Update$updateBallPosition = F2(
+	function (ball, time) {
+		return _elm_lang$core$Native_Utils.update(
+			ball,
+			{
+				x: A3(_ohanhi$elm_game_base$Update$updatePosition, time, ball.x, ball.vx),
+				y: A3(_ohanhi$elm_game_base$Update$updatePosition, time, ball.y, ball.vy)
+			});
+	});
+var _ohanhi$elm_game_base$Update$updatePaddlePosition = F2(
+	function (paddle, time) {
+		return _elm_lang$core$Native_Utils.update(
+			paddle,
+			{
+				x: A3(_ohanhi$elm_game_base$Update$updatePosition, time, paddle.x, paddle.vx)
+			});
+	});
+var _ohanhi$elm_game_base$Update$updatePositions = F2(
+	function (model, time) {
+		var paddle = A3(
+			_ohanhi$elm_game_base$Update$clampPosition,
+			A2(_ohanhi$elm_game_base$Update$updatePaddlePosition, model.paddle, time),
+			model.width - model.paddle.width,
+			model.height);
+		var ball = A2(_ohanhi$elm_game_base$Update$updateBallPosition, model.ball, time);
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{ball: ball, paddle: paddle});
+	});
+var _ohanhi$elm_game_base$Update$applyPhysics = F2(
+	function (model, time) {
+		return _ohanhi$elm_game_base$Update$handleWallCollisions(
+			_ohanhi$elm_game_base$Update$updateHitboxes(
+				A2(_ohanhi$elm_game_base$Update$updatePositions, model, time)));
+	});
+var _ohanhi$elm_game_base$Update$updatePaddleVelocity = F2(
 	function (paddle, vx) {
 		return _elm_lang$core$Native_Utils.update(
 			paddle,
 			{vx: vx});
 	});
-var _ohanhi$elm_game_base$Game$updatePosition = F5(
-	function (lowerBound, upperBound, dt, position, velocity) {
-		var newPosition = position + ((velocity * dt) / 16);
-		return (_elm_lang$core$Native_Utils.cmp(newPosition, lowerBound) < 0) ? lowerBound : ((_elm_lang$core$Native_Utils.cmp(newPosition, upperBound) > 0) ? upperBound : newPosition);
-	});
-var _ohanhi$elm_game_base$Game$updatePaddlePosition = F2(
-	function (time, paddle) {
-		return _elm_lang$core$Native_Utils.update(
-			paddle,
-			{
-				x: A5(_ohanhi$elm_game_base$Game$updatePosition, 0, 850, time, paddle.x, paddle.vx)
-			});
-	});
-var _ohanhi$elm_game_base$Game$updateBallPosition = F2(
-	function (time, ball) {
-		return _elm_lang$core$Native_Utils.update(
-			ball,
-			{
-				x: A5(_ohanhi$elm_game_base$Game$updatePosition, 10, 990, time, ball.x, ball.vx),
-				y: A5(_ohanhi$elm_game_base$Game$updatePosition, 10, 2000, time, ball.y, ball.vy)
-			});
-	});
-var _ohanhi$elm_game_base$Game$applyPhysics = F2(
-	function (dt, model) {
-		var _p1 = _ohanhi$elm_game_base$Game$collideObjects(model);
-		var ball = _p1.ball;
-		var bricks = _p1.bricks;
-		return _elm_lang$core$Native_Utils.update(
-			model,
-			{
-				paddle: A2(_ohanhi$elm_game_base$Game$updatePaddlePosition, dt, model.paddle),
-				ball: A2(_ohanhi$elm_game_base$Game$updateBallPosition, dt, ball),
-				bricks: bricks
-			});
-	});
-var _ohanhi$elm_game_base$Game$keyUp = F2(
+var _ohanhi$elm_game_base$Update$keyUp = F2(
 	function (keyCode, model) {
-		var _p2 = _ohanhi$elm_game_base$Key$fromCode(keyCode);
-		switch (_p2.ctor) {
+		var _p0 = _ohanhi$elm_game_base$Key$fromCode(keyCode);
+		switch (_p0.ctor) {
 			case 'ArrowLeft':
 				return _elm_lang$core$Native_Utils.update(
 					model,
 					{
-						paddle: A2(_ohanhi$elm_game_base$Game$updatePaddleVelocity, model.paddle, 0)
+						paddle: A2(_ohanhi$elm_game_base$Update$updatePaddleVelocity, model.paddle, 0)
 					});
 			case 'ArrowRight':
 				return _elm_lang$core$Native_Utils.update(
 					model,
 					{
-						paddle: A2(_ohanhi$elm_game_base$Game$updatePaddleVelocity, model.paddle, 0)
+						paddle: A2(_ohanhi$elm_game_base$Update$updatePaddleVelocity, model.paddle, 0)
 					});
 			default:
 				return model;
 		}
 	});
-var _ohanhi$elm_game_base$Game$init = {ctor: '_Tuple2', _0: _ohanhi$elm_game_base$Model$model, _1: _elm_lang$core$Platform_Cmd$none};
-var _ohanhi$elm_game_base$Game$keyDown = F2(
+var _ohanhi$elm_game_base$Update$keyDown = F2(
 	function (keyCode, model) {
-		var _p3 = _ohanhi$elm_game_base$Key$fromCode(keyCode);
-		switch (_p3.ctor) {
+		var _p1 = _ohanhi$elm_game_base$Key$fromCode(keyCode);
+		switch (_p1.ctor) {
 			case 'R':
-				return _elm_lang$core$Tuple$first(_ohanhi$elm_game_base$Game$init);
+				return _ohanhi$elm_game_base$Model$model;
 			case 'ArrowLeft':
 				return _elm_lang$core$Native_Utils.update(
 					model,
 					{
-						paddle: A2(_ohanhi$elm_game_base$Game$updatePaddleVelocity, model.paddle, -5.0)
+						paddle: A2(_ohanhi$elm_game_base$Update$updatePaddleVelocity, model.paddle, -5.0)
 					});
 			case 'ArrowRight':
 				return _elm_lang$core$Native_Utils.update(
 					model,
 					{
-						paddle: A2(_ohanhi$elm_game_base$Game$updatePaddleVelocity, model.paddle, 5.0)
+						paddle: A2(_ohanhi$elm_game_base$Update$updatePaddleVelocity, model.paddle, 5.0)
 					});
 			default:
 				return model;
 		}
 	});
-var _ohanhi$elm_game_base$Game$update = F2(
+var _ohanhi$elm_game_base$Update$update = F2(
 	function (msg, model) {
-		var _p4 = msg;
-		switch (_p4.ctor) {
+		var _p2 = msg;
+		switch (_p2.ctor) {
 			case 'TimeUpdate':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_ohanhi$elm_game_base$Game$applyPhysics, _p4._0, model),
+					_0: A2(_ohanhi$elm_game_base$Update$applyPhysics, model, _p2._0),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'KeyDown':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_ohanhi$elm_game_base$Game$keyDown, _p4._0, model),
+					_0: A2(_ohanhi$elm_game_base$Update$keyDown, _p2._0, model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			default:
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_ohanhi$elm_game_base$Game$keyUp, _p4._0, model),
+					_0: A2(_ohanhi$elm_game_base$Update$keyUp, _p2._0, model),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
 	});
-var _ohanhi$elm_game_base$Game$KeyUp = function (a) {
+var _ohanhi$elm_game_base$Update$KeyUp = function (a) {
 	return {ctor: 'KeyUp', _0: a};
 };
-var _ohanhi$elm_game_base$Game$KeyDown = function (a) {
+var _ohanhi$elm_game_base$Update$KeyDown = function (a) {
 	return {ctor: 'KeyDown', _0: a};
 };
-var _ohanhi$elm_game_base$Game$TimeUpdate = function (a) {
+var _ohanhi$elm_game_base$Update$TimeUpdate = function (a) {
 	return {ctor: 'TimeUpdate', _0: a};
 };
-var _ohanhi$elm_game_base$Game$subscriptions = function (model) {
+var _ohanhi$elm_game_base$Update$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$batch(
 		{
 			ctor: '::',
-			_0: _elm_lang$animation_frame$AnimationFrame$diffs(_ohanhi$elm_game_base$Game$TimeUpdate),
+			_0: _elm_lang$animation_frame$AnimationFrame$diffs(_ohanhi$elm_game_base$Update$TimeUpdate),
 			_1: {
 				ctor: '::',
-				_0: _elm_lang$keyboard$Keyboard$downs(_ohanhi$elm_game_base$Game$KeyDown),
+				_0: _elm_lang$keyboard$Keyboard$downs(_ohanhi$elm_game_base$Update$KeyDown),
 				_1: {
 					ctor: '::',
-					_0: _elm_lang$keyboard$Keyboard$ups(_ohanhi$elm_game_base$Game$KeyUp),
+					_0: _elm_lang$keyboard$Keyboard$ups(_ohanhi$elm_game_base$Update$KeyUp),
 					_1: {ctor: '[]'}
 				}
 			}
 		});
 };
-var _ohanhi$elm_game_base$Game$main = _elm_lang$html$Html$program(
-	{init: _ohanhi$elm_game_base$Game$init, view: _ohanhi$elm_game_base$Game$view, update: _ohanhi$elm_game_base$Game$update, subscriptions: _ohanhi$elm_game_base$Game$subscriptions})();
+var _ohanhi$elm_game_base$Main$init = {ctor: '_Tuple2', _0: _ohanhi$elm_game_base$Model$model, _1: _elm_lang$core$Platform_Cmd$none};
+var _ohanhi$elm_game_base$Main$main = _elm_lang$html$Html$program(
+	{init: _ohanhi$elm_game_base$Main$init, view: _ohanhi$elm_game_base$View$view, update: _ohanhi$elm_game_base$Update$update, subscriptions: _ohanhi$elm_game_base$Update$subscriptions})();
 var Elm = {};
-Elm['Game'] = Elm['Game'] || {};
-if (typeof _ohanhi$elm_game_base$Game$main !== 'undefined') {
-    _ohanhi$elm_game_base$Game$main(Elm['Game'], 'Game', undefined);
+Elm['Main'] = Elm['Main'] || {};
+if (typeof _ohanhi$elm_game_base$Main$main !== 'undefined') {
+    _ohanhi$elm_game_base$Main$main(Elm['Main'], 'Main', undefined);
 }
 
 if (typeof define === "function" && define['amd'])
@@ -9771,4 +9848,4 @@ for (var publicModule in Elm)
 }
 
 }).call(this);
-</script></head><body><script type="text/javascript">Elm.Game.fullscreen()</script></body></html>
+</script></head><body><script type="text/javascript">Elm.Main.fullscreen()</script></body></html>
