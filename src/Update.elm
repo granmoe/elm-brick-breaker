@@ -65,7 +65,70 @@ applyPhysics model time =
     -- TODO: Eventally should be this:
     -- updatePositions >> updateHitboxes >> calculateCollisions >> updateFromCollisions model time
     -- or maybe use a monad
-    updatePositions model time |> updateHitboxes
+    updatePositions model time |> updateHitboxes |> handleWallCollisions
+
+
+
+-- |> handleObjectCollisions
+
+
+updatePositions : Model -> Float -> Model
+updatePositions model time =
+    let
+        ball =
+            updateBallPosition model.ball time
+
+        paddle =
+            clampPosition (updatePaddlePosition model.paddle time) (model.width - model.paddle.width) model.height
+    in
+        { model
+            | ball = ball
+            , paddle = paddle
+        }
+
+
+updatePaddlePosition : GameObject -> Time -> GameObject
+updatePaddlePosition paddle time =
+    { paddle | x = updatePosition time paddle.x paddle.vx }
+
+
+updateBallPosition : GameObject -> Time -> GameObject
+updateBallPosition ball time =
+    { ball
+        | x = updatePosition time ball.x ball.vx
+        , y = updatePosition time ball.y ball.vy
+    }
+
+
+updatePosition : Time -> Float -> Float -> Float
+updatePosition dt position velocity =
+    position + velocity * dt / 16
+
+
+clampPosition : GameObject -> Float -> Float -> GameObject
+clampPosition gameObject maxX maxY =
+    -- assuming mins of 0
+    let
+        x =
+            if (gameObject.x < 0) then
+                0
+            else if (gameObject.x > maxX) then
+                maxX
+            else
+                gameObject.x
+
+        y =
+            if (gameObject.y < 0) then
+                0
+            else if (gameObject.y > maxY) then
+                maxY
+            else
+                gameObject.y
+    in
+        { gameObject
+            | x = x
+            , y = y
+        }
 
 
 updateHitboxes : Model -> Model
@@ -86,50 +149,54 @@ updateHitboxes model =
 updateHitbox : GameObject -> GameObject
 updateHitbox gameObject =
     { gameObject
-        | hitbox = [ ( gameObject.x, gameObject.x + gameObject.width ), ( gameObject.y, gameObject.y + gameObject.height ) ]
+        | hitbox = { xs = ( gameObject.x, gameObject.x + gameObject.width ), ys = ( gameObject.y, gameObject.y + gameObject.height ) }
     }
 
 
-updatePositions : Model -> Float -> Model
-updatePositions model time =
+handleWallCollisions : Model -> Model
+handleWallCollisions model =
     let
         ball =
-            updateBallPosition model.ball time
-
-        paddle =
-            updatePaddlePosition model.paddle time
+            collideBallWithWalls model.ball model.width model.height
     in
         { model
             | ball = ball
-            , paddle = paddle
         }
 
 
-updatePaddlePosition : GameObject -> Time -> GameObject
-updatePaddlePosition paddle time =
-    { paddle | x = updatePosition 0 850 time paddle.x paddle.vx }
-
-
-updateBallPosition : GameObject -> Time -> GameObject
-updateBallPosition ball time =
-    { ball
-        | x = updatePosition 10 990 time ball.x ball.vx
-        , y = updatePosition 10 2000 time ball.y ball.vy
-    }
-
-
-updatePosition : Float -> Float -> Time -> Float -> Float -> Float
-updatePosition lowerBound upperBound dt position velocity =
+collideBallWithWalls : GameObject -> Float -> Float -> GameObject
+collideBallWithWalls ball maxX maxY =
+    -- assuming mins of 0
     let
-        newPosition =
-            position + velocity * dt / 16
+        vx =
+            if (ball.x < 0 || ball.x > maxX) then
+                -ball.vx
+            else
+                ball.vx
+
+        vy =
+            if (ball.y < 0 || ball.y > maxY) then
+                -ball.vy
+            else
+                ball.vy
     in
-        if (newPosition < lowerBound) then
-            lowerBound
-        else if (newPosition > upperBound) then
-            upperBound
-        else
-            newPosition
+        { ball
+            | vx = vx
+            , vy = vy
+        }
+
+
+
+-- getCollidedObject : Model -> { model : Model, collidedObject : Maybe GameObject }
+-- getCollidedObject model =
+--     let
+--         collidedObject =
+--             collideObjects model.ball [ model.paddle ]
+--     in
+--         { model = model, collidedObject = collidedObject }
+-- collideObjects : GameObject -> List GameObject -> Maybe List GameObject
+-- collideObjects object objectsList =
+--     Just objectsList
 
 
 updateBallVelocity : GameObject -> Maybe GameObject -> GameObject

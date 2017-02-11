@@ -1,4 +1,4 @@
-module Model exposing (Model, model, GameObject, Edge)
+module Model exposing (Model, model, GameObject)
 
 
 type alias Model =
@@ -12,22 +12,16 @@ type alias Model =
     }
 
 
-type alias Line =
-    -- (x intersect, y start, y end) or
-    -- (y intersect, x start, x end)
-    ( Float, Float, Float )
-
-
-type Edge
-    = Top Line
-    | Right Line
-    | Bottom Line
-    | Left Line
-
-
 type alias Hitbox =
-    -- [(x1, x2), (y1, y2)]
-    List ( Float, Float )
+    { xs : ( Float, Float )
+    , ys : ( Float, Float )
+    }
+
+
+type GameObjectName
+    = Brick
+    | Paddle
+    | Ball
 
 
 type alias GameObject =
@@ -38,6 +32,7 @@ type alias GameObject =
     , width : Float
     , height : Float
     , hitbox : Hitbox
+    , objectType : GameObjectName
     }
 
 
@@ -50,9 +45,10 @@ bricks =
       , width = 10
       , height = 10
       , hitbox =
-            [ ( 0, 0 )
-            , ( 0, 0 )
-            ]
+            { xs = ( 0, 0 )
+            , ys = ( 0, 0 )
+            }
+      , objectType = Brick
       }
     ]
 
@@ -69,21 +65,23 @@ model =
         , width = 150
         , height = 25
         , hitbox =
-            [ ( 425, 575 )
-            , ( 940, 965 )
-            ]
+            { xs = ( 425, 575 )
+            , ys = ( 940, 965 )
+            }
+        , objectType = Paddle
         }
     , ball =
         { x = 500
         , y = 600
-        , vx = 0
+        , vx = 4
         , vy = 5
         , width = 10
         , height = 10
         , hitbox =
-            [ ( 500, 510 )
-            , ( 600, 610 )
-            ]
+            { xs = ( 500, 510 )
+            , ys = ( 600, 610 )
+            }
+        , objectType = Ball
         }
     , bricks = bricks
     , lostGame = False
