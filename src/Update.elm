@@ -65,7 +65,7 @@ applyPhysics model time =
     -- TODO: Eventally should be this:
     -- updatePositions >> updateHitboxes >> calculateCollisions >> updateFromCollisions model time
     -- or maybe use a monad
-    updatePositions model time |> updateHitboxes |> handleWallCollisions
+    updatePositions model time |> updateHitboxes |> handleWallCollisions |> clampPositions
 
 
 
@@ -79,7 +79,7 @@ updatePositions model time =
             updateBallPosition model.ball time
 
         paddle =
-            clampPosition (updatePaddlePosition model.paddle time) (model.width - model.paddle.width) model.height
+            updatePaddlePosition model.paddle time
     in
         { model
             | ball = ball
@@ -105,9 +105,8 @@ updatePosition dt position velocity =
     position + velocity * dt / 16
 
 
-clampPosition : GameObject -> Float -> Float -> GameObject
-clampPosition gameObject maxX maxY =
-    -- assuming mins of 0
+clampPosition : Float -> Float -> GameObject -> GameObject
+clampPosition maxX maxY gameObject =
     let
         x =
             if (gameObject.x < 0) then
@@ -128,6 +127,21 @@ clampPosition gameObject maxX maxY =
         { gameObject
             | x = x
             , y = y
+        }
+
+
+clampPositions : Model -> Model
+clampPositions model =
+    let
+        ball =
+            clampPosition (model.width - model.ball.width - 1) (model.height - model.height - 1) model.ball
+
+        paddle =
+            clampPosition (model.width - model.paddle.width) (model.height - model.paddle.height) model.paddle
+    in
+        { model
+            | ball = ball
+            , paddle = paddle
         }
 
 
@@ -166,16 +180,15 @@ handleWallCollisions model =
 
 collideBallWithWalls : GameObject -> Float -> Float -> GameObject
 collideBallWithWalls ball maxX maxY =
-    -- assuming mins of 0
     let
         vx =
-            if (ball.x < 0 || ball.x > maxX) then
+            if (ball.x < 0 || ball.x >= maxX) then
                 -ball.vx
             else
                 ball.vx
 
         vy =
-            if (ball.y < 0 || ball.y > maxY) then
+            if (ball.y < 0 || ball.y >= maxY) then
                 -ball.vy
             else
                 ball.vy
@@ -184,25 +197,6 @@ collideBallWithWalls ball maxX maxY =
             | vx = vx
             , vy = vy
         }
-
-
-
--- getCollidedObject : Model -> { model : Model, collidedObject : Maybe GameObject }
--- getCollidedObject model =
---     let
---         collidedObject =
---             collideObjects model.ball [ model.paddle ]
---     in
---         { model = model, collidedObject = collidedObject }
--- collideObjects : GameObject -> List GameObject -> Maybe List GameObject
--- collideObjects object objectsList =
---     Just objectsList
-
-
-updateBallVelocity : GameObject -> Maybe GameObject -> GameObject
-updateBallVelocity ball collidedObject =
-    -- TODO contribute some of collidedObject's velocity to ball
-    ball
 
 
 subscriptions : Model -> Sub Msg
