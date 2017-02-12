@@ -134,8 +134,10 @@ clampPositions : Model -> Model
 clampPositions model =
     let
         ball =
-            clampPosition (model.width - model.ball.width - 1) (model.height - model.height - 1) model.ball
+            model.ball
 
+        -- TODO: This is causing bugs for some reason
+        -- clampPosition (model.width - model.ball.width - 1) (model.height - model.ball.height - 1) model.ball
         paddle =
             clampPosition (model.width - model.paddle.width) (model.height - model.paddle.height) model.paddle
     in
