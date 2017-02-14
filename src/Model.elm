@@ -1,4 +1,27 @@
-module Model exposing (Model, model, GameObject)
+module Model exposing (Model, model, GameObject, GameObjectName(Brick, Paddle, Ball), CollisionData, collisionData)
+
+import Rectangle exposing (Rectangle)
+
+
+type alias CollisionData =
+    { offsetX : Float
+    , offsetY : Float
+    , vx : Float
+    , vy : Float
+    , hasCollision : Bool
+    , bricks : List GameObject
+    }
+
+
+collisionData : CollisionData
+collisionData =
+    { offsetX = 0
+    , offsetY = 0
+    , vx = 0
+    , vy = 0
+    , hasCollision = False
+    , bricks = []
+    }
 
 
 type alias Model =
@@ -7,14 +30,8 @@ type alias Model =
     , paddle : GameObject
     , ball : GameObject
     , bricks : List GameObject
-    , lostGame : Bool
+    , remainingLives : Int
     , wonGame : Bool
-    }
-
-
-type alias Hitbox =
-    { xs : ( Float, Float )
-    , ys : ( Float, Float )
     }
 
 
@@ -31,7 +48,7 @@ type alias GameObject =
     , vy : Float
     , width : Float
     , height : Float
-    , hitbox : Hitbox
+    , hitbox : Rectangle
     , objectType : GameObjectName
     }
 
@@ -84,6 +101,6 @@ model =
         , objectType = Ball
         }
     , bricks = bricks
-    , lostGame = False
+    , remainingLives = 3
     , wonGame = False
     }

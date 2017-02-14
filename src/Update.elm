@@ -3,8 +3,9 @@ module Update exposing (Msg, update, subscriptions)
 import Keyboard exposing (KeyCode)
 import AnimationFrame
 import Time exposing (Time)
-import Model exposing (model, Model, GameObject)
+import Model exposing (model, Model, GameObject, collisionData, CollisionData, GameObjectName(Brick, Paddle, Ball))
 import Key exposing (fromCode)
+import Rectangle exposing (rectangleIntersection)
 
 
 type Msg
@@ -62,14 +63,7 @@ updatePaddleVelocity paddle vx =
 
 applyPhysics : Model -> Float -> Model
 applyPhysics model time =
-    -- TODO: Eventally should be this:
-    -- updatePositions >> updateHitboxes >> calculateCollisions >> updateFromCollisions model time
-    -- or maybe use a monad
-    updatePositions model time |> updateHitboxes |> handleWallCollisions |> clampPositions
-
-
-
--- |> handleObjectCollisions
+    updatePositions model time |> updateHitboxes |> handleWallCollisions |> handleObjectCollisions |> clampPositions
 
 
 updatePositions : Model -> Float -> Model
@@ -199,6 +193,91 @@ collideBallWithWalls ball maxX maxY =
             | vx = vx
             , vy = vy
         }
+
+
+handleObjectCollisions : Model -> Model
+handleObjectCollisions model =
+    applyCollisionData model <| List.foldl (calculateCollisionData model.ball) collisionData <| model.paddle :: model.bricks
+
+
+calculateCollisionData : GameObject -> GameObject -> CollisionData -> CollisionData
+calculateCollisionData ball object data =
+    let
+        { offsetX, offsetY, intersects } =
+            calculateTranslationVector ball object
+    in
+        { data
+            | offsetX = data.offsetX + offsetX
+            , offsetY = data.offsetY + offsetY
+            , vx =
+                if (intersects) then
+                    data.vx + object.vx / 4
+                else
+                    data.vx
+            , vy =
+                if (intersects) then
+                    data.vy + object.vy / 4
+                else
+                    data.vy
+            , hasCollision = data.hasCollision || intersects
+            , bricks =
+                case object.objectType of
+                    Brick ->
+                        object :: data.bricks
+
+                    _ ->
+                        data.bricks
+        }
+
+
+calculateTranslationVector : GameObject -> GameObject -> { offsetX : Float, offsetY : Float, intersects : Bool }
+calculateTranslationVector ball object =
+    let
+        { x, y, intersects } =
+            rectangleIntersection ball.hitbox object.hitbox
+    in
+        { offsetX =
+            if (intersects && ball.vx > 0) then
+                -x
+            else
+                x
+        , offsetY =
+            if (intersects && ball.vy > 0) then
+                -y
+            else
+                y
+        , intersects = intersects
+        }
+
+
+applyCollisionData : Model -> CollisionData -> Model
+applyCollisionData model { hasCollision, offsetX, offsetY, vx, vy, bricks } =
+    let
+        ball =
+            updateBallFromCollisions model.ball hasCollision offsetX offsetY vx vy
+    in
+        { model
+            | ball = ball
+            , bricks = bricks
+        }
+
+
+updateBallFromCollisions : GameObject -> Bool -> Float -> Float -> Float -> Float -> GameObject
+updateBallFromCollisions ball hasCollision offsetX offsetY vx vy =
+    { ball
+        | x = ball.x + offsetX
+        , y = ball.y + offsetY
+        , vx =
+            if (hasCollision && abs offsetX > abs offsetY) then
+                -(ball.vx + vx)
+            else
+                ball.vx + vx
+        , vy =
+            if (hasCollision && abs offsetY > abs offsetX) then
+                -(ball.vy + vy)
+            else
+                ball.vy + vy
+    }
 
 
 subscriptions : Model -> Sub Msg
