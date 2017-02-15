@@ -102,21 +102,19 @@ updatePosition dt position velocity =
 clampPosition : Float -> Float -> GameObject -> GameObject
 clampPosition maxX maxY gameObject =
     let
-        x =
-            if (gameObject.x < 0) then
-                0
-            else if (gameObject.x > maxX) then
-                maxX
+        clamp num min max =
+            if (num < min) then
+                min
+            else if (num > max) then
+                max
             else
-                gameObject.x
+                num
+
+        x =
+            clamp gameObject.x 0 maxX
 
         y =
-            if (gameObject.y < 0) then
-                0
-            else if (gameObject.y > maxY) then
-                maxY
-            else
-                gameObject.y
+            clamp gameObject.y 0 maxY
     in
         { gameObject
             | x = x
@@ -177,17 +175,17 @@ handleWallCollisions model =
 collideBallWithWalls : GameObject -> Float -> Float -> GameObject
 collideBallWithWalls ball maxX maxY =
     let
-        vx =
-            if (ball.x < 0 || ball.x >= maxX) then
-                -ball.vx
+        changeVelocity pos max v =
+            if (pos < 0 || pos > max) then
+                -v
             else
-                ball.vx
+                v
+
+        vx =
+            changeVelocity ball.x maxX ball.vx
 
         vy =
-            if (ball.y < 0 || ball.y >= maxY) then
-                -ball.vy
-            else
-                ball.vy
+            changeVelocity ball.y maxY ball.vy
     in
         { ball
             | vx = vx
@@ -205,47 +203,51 @@ calculateCollisionData ball object data =
     let
         { offsetX, offsetY, intersects } =
             calculateTranslationVector ball object
+
+        addObjectVelocity intersects v objV =
+            if (intersects) then
+                v + objV / 3
+            else
+                v
     in
         { data
             | offsetX = data.offsetX + offsetX
             , offsetY = data.offsetY + offsetY
-            , vx =
-                if (intersects) then
-                    data.vx + object.vx / 4
-                else
-                    data.vx
-            , vy =
-                if (intersects) then
-                    data.vy + object.vy / 4
-                else
-                    data.vy
+            , vx = addObjectVelocity intersects data.vx object.vx
+            , vy = addObjectVelocity intersects data.vy object.vy
             , hasCollision = data.hasCollision || intersects
             , bricks =
                 case object.objectType of
                     Brick ->
-                        object :: data.bricks
+                        { object | health = damageBrick intersects object.health } :: data.bricks
 
                     _ ->
                         data.bricks
         }
 
 
+damageBrick : Bool -> Float -> Float
+damageBrick intersects health =
+    if (intersects) then
+        health - 34
+    else
+        health
+
+
 calculateTranslationVector : GameObject -> GameObject -> { offsetX : Float, offsetY : Float, intersects : Bool }
 calculateTranslationVector ball object =
     let
+        flipOffset intersects v offset =
+            if (intersects && v > 0) then
+                -offset
+            else
+                offset
+
         { x, y, intersects } =
             rectangleIntersection ball.hitbox object.hitbox
     in
-        { offsetX =
-            if (intersects && ball.vx > 0) then
-                -x
-            else
-                x
-        , offsetY =
-            if (intersects && ball.vy > 0) then
-                -y
-            else
-                y
+        { offsetX = flipOffset intersects ball.vx x
+        , offsetY = flipOffset intersects ball.vy y
         , intersects = intersects
         }
 
@@ -258,7 +260,7 @@ applyCollisionData model { hasCollision, offsetX, offsetY, vx, vy, bricks } =
     in
         { model
             | ball = ball
-            , bricks = bricks
+            , bricks = List.filter (\brick -> brick.health > 0) bricks
         }
 
 
@@ -267,17 +269,17 @@ updateBallFromCollisions ball hasCollision offsetX offsetY vx vy =
     { ball
         | x = ball.x + offsetX
         , y = ball.y + offsetY
-        , vx =
-            if (hasCollision && abs offsetX > abs offsetY) then
-                -(ball.vx + vx)
-            else
-                ball.vx + vx
-        , vy =
-            if (hasCollision && abs offsetY > abs offsetX) then
-                -(ball.vy + vy)
-            else
-                ball.vy + vy
+        , vx = calculateDirection hasCollision (ball.vx + vx) (abs offsetX) (abs offsetY)
+        , vy = calculateDirection hasCollision (ball.vy + vy) (abs offsetY) (abs offsetX)
     }
+
+
+calculateDirection : Bool -> Float -> Float -> Float -> Float
+calculateDirection hasCollision v firstAxisOffset secondAxisOffset =
+    if (hasCollision && firstAxisOffset < secondAxisOffset) then
+        -v
+    else
+        v
 
 
 subscriptions : Model -> Sub Msg

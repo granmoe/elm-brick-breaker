@@ -1,52 +1,72 @@
 module View exposing (view)
 
-import Html exposing (Html, div, Attribute )
+import Html exposing (Html, div, Attribute)
 import Html.Attributes exposing (style)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
-
 import Model exposing (model, Model, GameObject)
+
 
 wrapperStyle : Html.Attribute msg
 wrapperStyle =
     Html.Attributes.style
-    [ ("backgroundColor", "papayawhip")
-    , ("position", "fixed")
-    , ("top", "0")
-    , ("right", "0")
-    , ("bottom", "0")
-    , ("left", "0")
-    , ("padding", "10%")
-    ]
+        [ ( "backgroundColor", "papayawhip" )
+        , ( "position", "fixed" )
+        , ( "top", "0" )
+        , ( "right", "0" )
+        , ( "bottom", "0" )
+        , ( "left", "0" )
+        , ( "padding", "10%" )
+        ]
+
 
 view : Model -> Html msg
 view model =
     let
-        gameWidth = toString model.width
-        gameHeight = toString model.height
+        gameWidth =
+            toString model.width
+
+        gameHeight =
+            toString model.height
+
+        gameScreen =
+            rect
+                [ fill "black", x "0", y "0", width gameWidth, height gameHeight ]
+                []
     in
         div [ wrapperStyle ]
-            [
-                svg
-                    [ width "100%", height "100%", viewBox <| "0 0 " ++ gameWidth ++ " " ++ gameHeight ]
-                    [
-                        rect
-                        [ fill "black", x "0", y "0", width gameWidth, height gameHeight ]
-                        []
-                        , paddle model
-                        , ball model
-                    ]
+            [ svg
+                [ width "100%", height "100%", viewBox <| "0 0 " ++ gameWidth ++ " " ++ gameHeight ]
+                (List.append [ gameScreen ] <| renderChildren model)
             ]
 
-paddle : Model -> Html msg
-paddle model =
+
+renderChildren : Model -> List (Html msg)
+renderChildren model =
+    List.append [ renderPaddle model.paddle, renderBall model.ball ] <| List.map renderBrick model.bricks
+
+
+renderPaddle : GameObject -> Html msg
+renderPaddle paddle =
     rect
-    [ fill "gainsboro", x <| toString model.paddle.x, y <| toString model.paddle.y, width <| toString model.paddle.width, height <| toString model.paddle.height, rx "5", ry "5" ]
-    []
+        [ fill "gainsboro", x <| toString paddle.x, y <| toString paddle.y, width <| toString paddle.width, height <| toString paddle.height, rx "5", ry "5" ]
+        []
 
-ball : Model -> Html msg
-ball model =
+
+renderBall : GameObject -> Html msg
+renderBall ball =
     circle
-    [ fill "white", cx <| toString model.ball.x, cy <| toString model.ball.y, r <| toString model.ball.width ]
-    []
+        [ fill "white", cx <| toString ball.x, cy <| toString ball.y, r <| toString ball.width ]
+        []
 
+
+renderBrick : GameObject -> Html msg
+renderBrick brick =
+    rect
+        [ fill <| getBrickColor brick.health, x <| toString brick.x, y <| toString brick.y, width <| toString brick.width, height <| toString brick.height ]
+        []
+
+
+getBrickColor : Float -> String
+getBrickColor health =
+    "rgba(255, 0, 0, " ++ (toString <| health / 100) ++ ")"

@@ -50,24 +50,66 @@ type alias GameObject =
     , height : Float
     , hitbox : Rectangle
     , objectType : GameObjectName
+    , health : Float
     }
 
 
 bricks : List GameObject
 bricks =
-    [ { x = 0
-      , y = 0
-      , vx = 0
-      , vy = 0
-      , width = 10
-      , height = 10
-      , hitbox =
-            { xs = ( 0, 0 )
-            , ys = ( 0, 0 )
+    generateBricks [] 20 0 100
+
+
+generateBricks : List GameObject -> Int -> Float -> Float -> List GameObject
+generateBricks bricks total x y =
+    let
+        getNextX x =
+            if (x == 800) then
+                0
+            else
+                x + 200
+    in
+        case total of
+            0 ->
+                bricks
+
+            _ ->
+                generateBricks (generateBrick x y :: bricks)
+                    (total - 1)
+                    (getNextX x)
+                    (if (x == 800) then
+                        y + 50
+                     else
+                        y
+                    )
+
+
+generateBrick : Float -> Float -> GameObject
+generateBrick x y =
+    { brickTemplate
+        | x = x
+        , y = y
+        , hitbox =
+            { xs = ( x, x + 200 )
+            , ys = ( y, y + 50 )
             }
-      , objectType = Brick
-      }
-    ]
+    }
+
+
+brickTemplate : GameObject
+brickTemplate =
+    { x = 0
+    , y = 0
+    , vx = 0
+    , vy = 0
+    , width = 200
+    , height = 50
+    , hitbox =
+        { xs = ( 0, 0 )
+        , ys = ( 0, 0 )
+        }
+    , objectType = Brick
+    , health = 100
+    }
 
 
 model : Model
@@ -86,11 +128,12 @@ model =
             , ys = ( 940, 965 )
             }
         , objectType = Paddle
+        , health = 100
         }
     , ball =
         { x = 500
         , y = 600
-        , vx = 4
+        , vx = 0
         , vy = 5
         , width = 10
         , height = 10
@@ -99,6 +142,7 @@ model =
             , ys = ( 600, 610 )
             }
         , objectType = Ball
+        , health = 100
         }
     , bricks = bricks
     , remainingLives = 3
