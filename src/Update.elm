@@ -266,20 +266,25 @@ applyCollisionData model { hasCollision, offsetX, offsetY, vx, vy, bricks } =
 
 updateBallFromCollisions : GameObject -> Bool -> Float -> Float -> Float -> Float -> GameObject
 updateBallFromCollisions ball hasCollision offsetX offsetY vx vy =
-    { ball
-        | x = ball.x + offsetX
-        , y = ball.y + offsetY
-        , vx = calculateDirection hasCollision (ball.vx + vx) (abs offsetX) (abs offsetY)
-        , vy = calculateDirection hasCollision (ball.vy + vy) (abs offsetY) (abs offsetX)
-    }
+    let
+        calculateOffset offset currentAxisOffset otherAxisOffset =
+            if (currentAxisOffset < otherAxisOffset) then
+                offset + currentAxisOffset
+            else
+                offset
 
-
-calculateDirection : Bool -> Float -> Float -> Float -> Float
-calculateDirection hasCollision v firstAxisOffset secondAxisOffset =
-    if (hasCollision && firstAxisOffset < secondAxisOffset) then
-        -v
-    else
-        v
+        calculateDirection hasCollision v currentAxisOffset otherAxisOffset =
+            if (hasCollision && currentAxisOffset < otherAxisOffset) then
+                -v
+            else
+                v
+    in
+        { ball
+            | x = calculateOffset ball.x offsetX offsetY
+            , y = calculateOffset ball.y offsetY offsetX
+            , vx = calculateDirection hasCollision (ball.vx + vx) (abs offsetX) (abs offsetY)
+            , vy = calculateDirection hasCollision (ball.vy + vy) (abs offsetY) (abs offsetX)
+        }
 
 
 subscriptions : Model -> Sub Msg
