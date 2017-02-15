@@ -9508,10 +9508,10 @@ var _ohanhi$elm_game_base$Model$model = {
 		y: 940,
 		vx: 0,
 		vy: 0,
-		width: 150,
+		width: 200,
 		height: 25,
 		hitbox: {
-			xs: {ctor: '_Tuple2', _0: 425, _1: 575},
+			xs: {ctor: '_Tuple2', _0: 400, _1: 600},
 			ys: {ctor: '_Tuple2', _0: 940, _1: 965}
 		},
 		objectType: _ohanhi$elm_game_base$Model$Paddle,
@@ -9521,7 +9521,7 @@ var _ohanhi$elm_game_base$Model$model = {
 		x: 500,
 		y: 600,
 		vx: 0,
-		vy: 5,
+		vy: 8,
 		width: 10,
 		height: 10,
 		hitbox: {
@@ -9810,7 +9810,7 @@ var _ohanhi$elm_game_base$Update$calculateTranslationVector = F2(
 	});
 var _ohanhi$elm_game_base$Update$damageBrick = F2(
 	function (intersects, health) {
-		return intersects ? (health - 34) : health;
+		return intersects ? (health - 50) : health;
 	});
 var _ohanhi$elm_game_base$Update$calculateCollisionData = F3(
 	function (ball, object, data) {

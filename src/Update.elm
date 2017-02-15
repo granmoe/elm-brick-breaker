@@ -229,7 +229,7 @@ calculateCollisionData ball object data =
 damageBrick : Bool -> Float -> Float
 damageBrick intersects health =
     if (intersects) then
-        health - 34
+        health - 50
     else
         health
 
