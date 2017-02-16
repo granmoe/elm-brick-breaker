@@ -126,10 +126,8 @@ clampPositions : Model -> Model
 clampPositions model =
     let
         ball =
-            model.ball
+            clampPosition (model.width - model.ball.width) (model.height - model.ball.height) model.ball
 
-        -- TODO: This is causing bugs for some reason
-        -- clampPosition (model.width - model.ball.width - 1) (model.height - model.ball.height - 1) model.ball
         paddle =
             clampPosition (model.width - model.paddle.width) (model.height - model.paddle.height) model.paddle
     in
@@ -165,7 +163,7 @@ handleWallCollisions : Model -> Model
 handleWallCollisions model =
     let
         ball =
-            collideBallWithWalls model.ball model.width model.height
+            collideBallWithWalls model.ball (model.width - model.ball.width) (model.height - model.ball.height)
     in
         { model
             | ball = ball
@@ -176,7 +174,7 @@ collideBallWithWalls : GameObject -> Float -> Float -> GameObject
 collideBallWithWalls ball maxX maxY =
     let
         changeVelocity pos max v =
-            if (pos < 0 || pos > max) then
+            if (pos <= 0 || pos >= max) then
                 -v
             else
                 v

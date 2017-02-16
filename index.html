@@ -9886,7 +9886,7 @@ var _ohanhi$elm_game_base$Update$collideBallWithWalls = F3(
 	function (ball, maxX, maxY) {
 		var changeVelocity = F3(
 			function (pos, max, v) {
-				return ((_elm_lang$core$Native_Utils.cmp(pos, 0) < 0) || (_elm_lang$core$Native_Utils.cmp(pos, max) > 0)) ? (0 - v) : v;
+				return ((_elm_lang$core$Native_Utils.cmp(pos, 0) < 1) || (_elm_lang$core$Native_Utils.cmp(pos, max) > -1)) ? (0 - v) : v;
 			});
 		var vx = A3(changeVelocity, ball.x, maxX, ball.vx);
 		var vy = A3(changeVelocity, ball.y, maxY, ball.vy);
@@ -9895,7 +9895,7 @@ var _ohanhi$elm_game_base$Update$collideBallWithWalls = F3(
 			{vx: vx, vy: vy});
 	});
 var _ohanhi$elm_game_base$Update$handleWallCollisions = function (model) {
-	var ball = A3(_ohanhi$elm_game_base$Update$collideBallWithWalls, model.ball, model.width, model.height);
+	var ball = A3(_ohanhi$elm_game_base$Update$collideBallWithWalls, model.ball, model.width - model.ball.width, model.height - model.ball.height);
 	return _elm_lang$core$Native_Utils.update(
 		model,
 		{ball: ball});
@@ -9931,7 +9931,7 @@ var _ohanhi$elm_game_base$Update$clampPosition = F3(
 	});
 var _ohanhi$elm_game_base$Update$clampPositions = function (model) {
 	var paddle = A3(_ohanhi$elm_game_base$Update$clampPosition, model.width - model.paddle.width, model.height - model.paddle.height, model.paddle);
-	var ball = model.ball;
+	var ball = A3(_ohanhi$elm_game_base$Update$clampPosition, model.width - model.ball.width, model.height - model.ball.height, model.ball);
 	return _elm_lang$core$Native_Utils.update(
 		model,
 		{ball: ball, paddle: paddle});
