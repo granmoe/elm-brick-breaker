@@ -9433,10 +9433,27 @@ var _ohanhi$elm_game_base$Model$Model = F7(
 	function (a, b, c, d, e, f, g) {
 		return {width: a, height: b, paddle: c, ball: d, bricks: e, remainingLives: f, wonGame: g};
 	});
-var _ohanhi$elm_game_base$Model$GameObject = F9(
-	function (a, b, c, d, e, f, g, h, i) {
-		return {x: a, y: b, vx: c, vy: d, width: e, height: f, hitbox: g, objectType: h, health: i};
-	});
+var _ohanhi$elm_game_base$Model$GameObject = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return {x: a, y: b, vx: c, vy: d, width: e, height: f, hitbox: g, objectType: h, health: i, color: j};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
 var _ohanhi$elm_game_base$Model$Ball = {ctor: 'Ball'};
 var _ohanhi$elm_game_base$Model$Paddle = {ctor: 'Paddle'};
 var _ohanhi$elm_game_base$Model$Brick = {ctor: 'Brick'};
@@ -9452,7 +9469,8 @@ var _ohanhi$elm_game_base$Model$brickTemplate = {
 		ys: {ctor: '_Tuple2', _0: 0, _1: 0}
 	},
 	objectType: _ohanhi$elm_game_base$Model$Brick,
-	health: 100
+	health: 100,
+	color: 'rgba(66, 244, 223, '
 };
 var _ohanhi$elm_game_base$Model$generateBrick = F2(
 	function (x, y) {
@@ -9515,13 +9533,14 @@ var _ohanhi$elm_game_base$Model$model = {
 			ys: {ctor: '_Tuple2', _0: 940, _1: 965}
 		},
 		objectType: _ohanhi$elm_game_base$Model$Paddle,
-		health: 100
+		health: 100,
+		color: 'gainsboro'
 	},
 	ball: {
 		x: 500,
 		y: 600,
 		vx: 0,
-		vy: 8,
+		vy: 7,
 		width: 10,
 		height: 10,
 		hitbox: {
@@ -9529,19 +9548,20 @@ var _ohanhi$elm_game_base$Model$model = {
 			ys: {ctor: '_Tuple2', _0: 600, _1: 610}
 		},
 		objectType: _ohanhi$elm_game_base$Model$Ball,
-		health: 100
+		health: 100,
+		color: 'white'
 	},
 	bricks: _ohanhi$elm_game_base$Model$bricks,
 	remainingLives: 3,
 	wonGame: false
 };
-var _ohanhi$elm_game_base$View$getBrickColor = function (health) {
+var _ohanhi$elm_game_base$View$getBrickColor = function (brick) {
 	return A2(
 		_elm_lang$core$Basics_ops['++'],
-		'rgba(255, 0, 0, ',
+		brick.color,
 		A2(
 			_elm_lang$core$Basics_ops['++'],
-			_elm_lang$core$Basics$toString(health / 100),
+			_elm_lang$core$Basics$toString(brick.health / 100),
 			')'));
 };
 var _ohanhi$elm_game_base$View$renderBrick = function (brick) {
@@ -9550,7 +9570,7 @@ var _ohanhi$elm_game_base$View$renderBrick = function (brick) {
 		{
 			ctor: '::',
 			_0: _elm_lang$svg$Svg_Attributes$fill(
-				_ohanhi$elm_game_base$View$getBrickColor(brick.health)),
+				_ohanhi$elm_game_base$View$getBrickColor(brick)),
 			_1: {
 				ctor: '::',
 				_0: _elm_lang$svg$Svg_Attributes$x(
@@ -9580,7 +9600,7 @@ var _ohanhi$elm_game_base$View$renderBall = function (ball) {
 		_elm_lang$svg$Svg$circle,
 		{
 			ctor: '::',
-			_0: _elm_lang$svg$Svg_Attributes$fill('white'),
+			_0: _elm_lang$svg$Svg_Attributes$fill(ball.color),
 			_1: {
 				ctor: '::',
 				_0: _elm_lang$svg$Svg_Attributes$cx(
@@ -9605,7 +9625,7 @@ var _ohanhi$elm_game_base$View$renderPaddle = function (paddle) {
 		_elm_lang$svg$Svg$rect,
 		{
 			ctor: '::',
-			_0: _elm_lang$svg$Svg_Attributes$fill('gainsboro'),
+			_0: _elm_lang$svg$Svg_Attributes$fill(paddle.color),
 			_1: {
 				ctor: '::',
 				_0: _elm_lang$svg$Svg_Attributes$x(
@@ -9751,25 +9771,29 @@ var _ohanhi$elm_game_base$View$view = function (model) {
 			_1: {ctor: '[]'}
 		});
 };
-var _ohanhi$elm_game_base$Update$calculateDirection = F4(
-	function (hasCollision, v, firstAxisOffset, secondAxisOffset) {
-		return (hasCollision && (_elm_lang$core$Native_Utils.cmp(firstAxisOffset, secondAxisOffset) < 0)) ? (0 - v) : v;
-	});
 var _ohanhi$elm_game_base$Update$updateBallFromCollisions = F6(
 	function (ball, hasCollision, offsetX, offsetY, vx, vy) {
+		var calculateDirection = F4(
+			function (hasCollision, v, currentAxisOffset, otherAxisOffset) {
+				return (hasCollision && (_elm_lang$core$Native_Utils.cmp(currentAxisOffset, otherAxisOffset) < 0)) ? (0 - v) : v;
+			});
+		var calculateOffset = F3(
+			function (offset, currentAxisOffset, otherAxisOffset) {
+				return (_elm_lang$core$Native_Utils.cmp(currentAxisOffset, otherAxisOffset) < 0) ? (offset + currentAxisOffset) : offset;
+			});
 		return _elm_lang$core$Native_Utils.update(
 			ball,
 			{
-				x: ball.x + offsetX,
-				y: ball.y + offsetY,
+				x: A3(calculateOffset, ball.x, offsetX, offsetY),
+				y: A3(calculateOffset, ball.y, offsetY, offsetX),
 				vx: A4(
-					_ohanhi$elm_game_base$Update$calculateDirection,
+					calculateDirection,
 					hasCollision,
 					ball.vx + vx,
 					_elm_lang$core$Basics$abs(offsetX),
 					_elm_lang$core$Basics$abs(offsetY)),
 				vy: A4(
-					_ohanhi$elm_game_base$Update$calculateDirection,
+					calculateDirection,
 					hasCollision,
 					ball.vy + vy,
 					_elm_lang$core$Basics$abs(offsetY),

@@ -49,24 +49,24 @@ renderChildren model =
 renderPaddle : GameObject -> Html msg
 renderPaddle paddle =
     rect
-        [ fill "gainsboro", x <| toString paddle.x, y <| toString paddle.y, width <| toString paddle.width, height <| toString paddle.height, rx "5", ry "5" ]
+        [ fill paddle.color, x <| toString paddle.x, y <| toString paddle.y, width <| toString paddle.width, height <| toString paddle.height, rx "5", ry "5" ]
         []
 
 
 renderBall : GameObject -> Html msg
 renderBall ball =
     circle
-        [ fill "white", cx <| toString ball.x, cy <| toString ball.y, r <| toString ball.width ]
+        [ fill ball.color, cx <| toString ball.x, cy <| toString ball.y, r <| toString ball.width ]
         []
 
 
 renderBrick : GameObject -> Html msg
 renderBrick brick =
     rect
-        [ fill <| getBrickColor brick.health, x <| toString brick.x, y <| toString brick.y, width <| toString brick.width, height <| toString brick.height ]
+        [ fill <| getBrickColor brick, x <| toString brick.x, y <| toString brick.y, width <| toString brick.width, height <| toString brick.height ]
         []
 
 
-getBrickColor : Float -> String
-getBrickColor health =
-    "rgba(255, 0, 0, " ++ (toString <| health / 100) ++ ")"
+getBrickColor : GameObject -> String
+getBrickColor brick =
+    brick.color ++ (toString <| brick.health / 100) ++ ")"

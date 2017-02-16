@@ -51,6 +51,7 @@ type alias GameObject =
     , hitbox : Rectangle
     , objectType : GameObjectName
     , health : Float
+    , color : String
     }
 
 
@@ -109,6 +110,7 @@ brickTemplate =
         }
     , objectType = Brick
     , health = 100
+    , color = "rgba(66, 244, 223, "
     }
 
 
@@ -129,6 +131,7 @@ model =
             }
         , objectType = Paddle
         , health = 100
+        , color = "gainsboro"
         }
     , ball =
         { x = 500
@@ -143,6 +146,7 @@ model =
             }
         , objectType = Ball
         , health = 100
+        , color = "white"
         }
     , bricks = bricks
     , remainingLives = 3
