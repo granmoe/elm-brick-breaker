@@ -1,20 +1,5 @@
-# Elm game base
+# Elm Brick Breaker 
 
-Example base for a game in Elm 0.18.
+A stripped down brick breaker game written in Elm 0.18.
 
-This codebase is made for [an article](http://ohanhi.github.io/base-for-game-elm-017.html). The main file here is [Game.elm](Game.elm).
-
-To get things up and running, you will need `npm` installed. Then clone this repository and navigate to the directory. The following commands should work for you even if you have a previous version of Elm installed globally:
-
-```bash
-› npm install
-› ./node_modules/.bin/elm-package install
-› ./node_modules/.bin/elm-reactor
-```
-
-Then you can point your browser to [http://localhost:8000/Game.elm](http://localhost:8000/Game.elm) and try it out (arrows left/right and spacebar to control).
-
-
-[![](https://img.shields.io/badge/Sponsored%20by-Chilicorn-brightgreen.svg)](http://chilicorn.org/)
-
-Licensed under [BSD (3-clause)](LICENSE).
+I used this [Elm game template repo](https://github.com/ohanhi/elm-game-base) as a starting point. See [this article](http://ohanhi.github.io/base-for-game-elm-017.html) about the starter repo.
