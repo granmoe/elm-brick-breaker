@@ -9771,6 +9771,25 @@ var _ohanhi$elm_game_base$View$view = function (model) {
 			_1: {ctor: '[]'}
 		});
 };
+var _ohanhi$elm_game_base$Update$clampPosition = F3(
+	function (maxX, maxY, gameObject) {
+		var clamp = F3(
+			function (num, min, max) {
+				return (_elm_lang$core$Native_Utils.cmp(num, min) < 0) ? min : ((_elm_lang$core$Native_Utils.cmp(num, max) > 0) ? max : num);
+			});
+		var x = A3(clamp, gameObject.x, 0, maxX);
+		var y = A3(clamp, gameObject.y, 0, maxY);
+		return _elm_lang$core$Native_Utils.update(
+			gameObject,
+			{x: x, y: y});
+	});
+var _ohanhi$elm_game_base$Update$clampPositions = function (model) {
+	var paddle = A3(_ohanhi$elm_game_base$Update$clampPosition, model.width - model.paddle.width, model.height - model.paddle.height, model.paddle);
+	var ball = A3(_ohanhi$elm_game_base$Update$clampPosition, model.width - model.ball.width, model.height - model.ball.height, model.ball);
+	return _elm_lang$core$Native_Utils.update(
+		model,
+		{ball: ball, paddle: paddle});
+};
 var _ohanhi$elm_game_base$Update$updateBallFromCollisions = F6(
 	function (ball, hasCollision, offsetX, offsetY, vx, vy) {
 		var calculateDirection = F4(
@@ -9832,12 +9851,12 @@ var _ohanhi$elm_game_base$Update$calculateTranslationVector = F2(
 			intersects: intersects
 		};
 	});
-var _ohanhi$elm_game_base$Update$damageBrick = F2(
-	function (intersects, health) {
-		return intersects ? (health - 50) : health;
-	});
 var _ohanhi$elm_game_base$Update$calculateCollisionData = F3(
 	function (ball, object, data) {
+		var damageBrick = F2(
+			function (intersects, health) {
+				return intersects ? (health - 50) : health;
+			});
 		var addObjectVelocity = F3(
 			function (intersects, v, objV) {
 				return intersects ? (v + (objV / 3)) : v;
@@ -9862,7 +9881,7 @@ var _ohanhi$elm_game_base$Update$calculateCollisionData = F3(
 							_0: _elm_lang$core$Native_Utils.update(
 								object,
 								{
-									health: A2(_ohanhi$elm_game_base$Update$damageBrick, intersects, object.health)
+									health: A2(damageBrick, intersects, object.health)
 								}),
 							_1: data.bricks
 						};
@@ -9900,67 +9919,40 @@ var _ohanhi$elm_game_base$Update$handleWallCollisions = function (model) {
 		model,
 		{ball: ball});
 };
-var _ohanhi$elm_game_base$Update$updateHitbox = function (gameObject) {
-	return _elm_lang$core$Native_Utils.update(
-		gameObject,
-		{
-			hitbox: {
-				xs: {ctor: '_Tuple2', _0: gameObject.x, _1: gameObject.x + gameObject.width},
-				ys: {ctor: '_Tuple2', _0: gameObject.y, _1: gameObject.y + gameObject.height}
-			}
-		});
-};
 var _ohanhi$elm_game_base$Update$updateHitboxes = function (model) {
-	var ball = _ohanhi$elm_game_base$Update$updateHitbox(model.ball);
-	var paddle = _ohanhi$elm_game_base$Update$updateHitbox(model.paddle);
+	var updateHitbox = function (gameObject) {
+		return _elm_lang$core$Native_Utils.update(
+			gameObject,
+			{
+				hitbox: {
+					xs: {ctor: '_Tuple2', _0: gameObject.x, _1: gameObject.x + gameObject.width},
+					ys: {ctor: '_Tuple2', _0: gameObject.y, _1: gameObject.y + gameObject.height}
+				}
+			});
+	};
+	var paddle = updateHitbox(model.paddle);
+	var ball = updateHitbox(model.ball);
 	return _elm_lang$core$Native_Utils.update(
 		model,
 		{paddle: paddle, ball: ball});
 };
-var _ohanhi$elm_game_base$Update$clampPosition = F3(
-	function (maxX, maxY, gameObject) {
-		var clamp = F3(
-			function (num, min, max) {
-				return (_elm_lang$core$Native_Utils.cmp(num, min) < 0) ? min : ((_elm_lang$core$Native_Utils.cmp(num, max) > 0) ? max : num);
+var _ohanhi$elm_game_base$Update$updateObjectPosition = F2(
+	function (object, time) {
+		var updateAxisPosition = F3(
+			function (dt, position, velocity) {
+				return position + ((velocity * dt) / 16);
 			});
-		var x = A3(clamp, gameObject.x, 0, maxX);
-		var y = A3(clamp, gameObject.y, 0, maxY);
 		return _elm_lang$core$Native_Utils.update(
-			gameObject,
-			{x: x, y: y});
-	});
-var _ohanhi$elm_game_base$Update$clampPositions = function (model) {
-	var paddle = A3(_ohanhi$elm_game_base$Update$clampPosition, model.width - model.paddle.width, model.height - model.paddle.height, model.paddle);
-	var ball = A3(_ohanhi$elm_game_base$Update$clampPosition, model.width - model.ball.width, model.height - model.ball.height, model.ball);
-	return _elm_lang$core$Native_Utils.update(
-		model,
-		{ball: ball, paddle: paddle});
-};
-var _ohanhi$elm_game_base$Update$updatePosition = F3(
-	function (dt, position, velocity) {
-		return position + ((velocity * dt) / 16);
-	});
-var _ohanhi$elm_game_base$Update$updateBallPosition = F2(
-	function (ball, time) {
-		return _elm_lang$core$Native_Utils.update(
-			ball,
+			object,
 			{
-				x: A3(_ohanhi$elm_game_base$Update$updatePosition, time, ball.x, ball.vx),
-				y: A3(_ohanhi$elm_game_base$Update$updatePosition, time, ball.y, ball.vy)
-			});
-	});
-var _ohanhi$elm_game_base$Update$updatePaddlePosition = F2(
-	function (paddle, time) {
-		return _elm_lang$core$Native_Utils.update(
-			paddle,
-			{
-				x: A3(_ohanhi$elm_game_base$Update$updatePosition, time, paddle.x, paddle.vx)
+				x: A3(updateAxisPosition, time, object.x, object.vx),
+				y: A3(updateAxisPosition, time, object.y, object.vy)
 			});
 	});
 var _ohanhi$elm_game_base$Update$updatePositions = F2(
 	function (model, time) {
-		var paddle = A2(_ohanhi$elm_game_base$Update$updatePaddlePosition, model.paddle, time);
-		var ball = A2(_ohanhi$elm_game_base$Update$updateBallPosition, model.ball, time);
+		var paddle = A2(_ohanhi$elm_game_base$Update$updateObjectPosition, model.paddle, time);
+		var ball = A2(_ohanhi$elm_game_base$Update$updateObjectPosition, model.ball, time);
 		return _elm_lang$core$Native_Utils.update(
 			model,
 			{ball: ball, paddle: paddle});

@@ -70,10 +70,10 @@ updatePositions : Model -> Float -> Model
 updatePositions model time =
     let
         ball =
-            updateBallPosition model.ball time
+            updateObjectPosition model.ball time
 
         paddle =
-            updatePaddlePosition model.paddle time
+            updateObjectPosition model.paddle time
     in
         { model
             | ball = ball
@@ -81,65 +81,26 @@ updatePositions model time =
         }
 
 
-updatePaddlePosition : GameObject -> Time -> GameObject
-updatePaddlePosition paddle time =
-    { paddle | x = updatePosition time paddle.x paddle.vx }
-
-
-updateBallPosition : GameObject -> Time -> GameObject
-updateBallPosition ball time =
-    { ball
-        | x = updatePosition time ball.x ball.vx
-        , y = updatePosition time ball.y ball.vy
-    }
-
-
-updatePosition : Time -> Float -> Float -> Float
-updatePosition dt position velocity =
-    position + velocity * dt / 16
-
-
-clampPosition : Float -> Float -> GameObject -> GameObject
-clampPosition maxX maxY gameObject =
+updateObjectPosition : GameObject -> Time -> GameObject
+updateObjectPosition object time =
     let
-        clamp num min max =
-            if (num < min) then
-                min
-            else if (num > max) then
-                max
-            else
-                num
-
-        x =
-            clamp gameObject.x 0 maxX
-
-        y =
-            clamp gameObject.y 0 maxY
+        updateAxisPosition dt position velocity =
+            position + velocity * dt / 16
     in
-        { gameObject
-            | x = x
-            , y = y
-        }
-
-
-clampPositions : Model -> Model
-clampPositions model =
-    let
-        ball =
-            clampPosition (model.width - model.ball.width) (model.height - model.ball.height) model.ball
-
-        paddle =
-            clampPosition (model.width - model.paddle.width) (model.height - model.paddle.height) model.paddle
-    in
-        { model
-            | ball = ball
-            , paddle = paddle
+        { object
+            | x = updateAxisPosition time object.x object.vx
+            , y = updateAxisPosition time object.y object.vy
         }
 
 
 updateHitboxes : Model -> Model
 updateHitboxes model =
     let
+        updateHitbox gameObject =
+            { gameObject
+                | hitbox = { xs = ( gameObject.x, gameObject.x + gameObject.width ), ys = ( gameObject.y, gameObject.y + gameObject.height ) }
+            }
+
         paddle =
             updateHitbox model.paddle
 
@@ -150,13 +111,6 @@ updateHitboxes model =
             | paddle = paddle
             , ball = ball
         }
-
-
-updateHitbox : GameObject -> GameObject
-updateHitbox gameObject =
-    { gameObject
-        | hitbox = { xs = ( gameObject.x, gameObject.x + gameObject.width ), ys = ( gameObject.y, gameObject.y + gameObject.height ) }
-    }
 
 
 handleWallCollisions : Model -> Model
@@ -207,6 +161,12 @@ calculateCollisionData ball object data =
                 v + objV / 3
             else
                 v
+
+        damageBrick intersects health =
+            if (intersects) then
+                health - 50
+            else
+                health
     in
         { data
             | offsetX = data.offsetX + offsetX
@@ -222,14 +182,6 @@ calculateCollisionData ball object data =
                     _ ->
                         data.bricks
         }
-
-
-damageBrick : Bool -> Float -> Float
-damageBrick intersects health =
-    if (intersects) then
-        health - 50
-    else
-        health
 
 
 calculateTranslationVector : GameObject -> GameObject -> { offsetX : Float, offsetY : Float, intersects : Bool }
@@ -282,6 +234,44 @@ updateBallFromCollisions ball hasCollision offsetX offsetY vx vy =
             , y = calculateOffset ball.y offsetY offsetX
             , vx = calculateDirection hasCollision (ball.vx + vx) (abs offsetX) (abs offsetY)
             , vy = calculateDirection hasCollision (ball.vy + vy) (abs offsetY) (abs offsetX)
+        }
+
+
+clampPositions : Model -> Model
+clampPositions model =
+    let
+        ball =
+            clampPosition (model.width - model.ball.width) (model.height - model.ball.height) model.ball
+
+        paddle =
+            clampPosition (model.width - model.paddle.width) (model.height - model.paddle.height) model.paddle
+    in
+        { model
+            | ball = ball
+            , paddle = paddle
+        }
+
+
+clampPosition : Float -> Float -> GameObject -> GameObject
+clampPosition maxX maxY gameObject =
+    let
+        clamp num min max =
+            if (num < min) then
+                min
+            else if (num > max) then
+                max
+            else
+                num
+
+        x =
+            clamp gameObject.x 0 maxX
+
+        y =
+            clamp gameObject.y 0 maxY
+    in
+        { gameObject
+            | x = x
+            , y = y
         }
 
 
