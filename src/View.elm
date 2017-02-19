@@ -63,10 +63,10 @@ renderBall ball =
 renderBrick : GameObject -> Html msg
 renderBrick brick =
     rect
-        [ fill <| getBrickColor brick, x <| toString brick.x, y <| toString brick.y, width <| toString brick.width, height <| toString brick.height ]
+        [ fill <| brick.color, fillOpacity <| getBrickOpacity brick, x <| toString brick.x, y <| toString brick.y, width <| toString brick.width, height <| toString brick.height ]
         []
 
 
-getBrickColor : GameObject -> String
-getBrickColor brick =
-    brick.color ++ (toString <| brick.health / 100) ++ ")"
+getBrickOpacity : GameObject -> String
+getBrickOpacity brick =
+    brick.health / 100 |> toString

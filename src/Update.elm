@@ -1,9 +1,11 @@
-module Update exposing (Msg, update, subscriptions)
+module Update exposing (Msg, update, subscriptions, generateBrickColors)
 
-import Keyboard exposing (KeyCode)
+import Random
+import Hex
 import AnimationFrame
+import Keyboard exposing (KeyCode)
 import Time exposing (Time)
-import Model exposing (model, Model, GameObject, collisionData, CollisionData, GameObjectName(Brick, Paddle, Ball))
+import Model exposing (model, Model, GameObject, generateBricks, collisionData, CollisionData, GameObjectName(Brick, Paddle, Ball))
 import Key exposing (fromCode)
 import Rectangle exposing (rectangleIntersection)
 
@@ -12,6 +14,7 @@ type Msg
     = TimeUpdate Time
     | KeyDown KeyCode
     | KeyUp KeyCode
+    | BrickColors (List Int)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -25,6 +28,19 @@ update msg model =
 
         KeyUp keyCode ->
             ( keyUp keyCode model, Cmd.none )
+
+        BrickColors colors ->
+            ( generateBricks model <| List.map (\n -> "#" ++ Hex.toString n) colors, Cmd.none )
+
+
+generateBrickColors : Model -> Cmd Msg
+generateBrickColors model =
+    Random.generate BrickColors <| Random.list model.brickCount <| (Random.int 0 16777215)
+
+
+generateBricks : Model -> List String -> Model
+generateBricks model colors =
+    { model | bricks = Model.generateBricks [] colors 20 0 100 }
 
 
 keyDown : KeyCode -> Model -> Model

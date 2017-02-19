@@ -1,4 +1,4 @@
-module Model exposing (Model, model, GameObject, GameObjectName(Brick, Paddle, Ball), CollisionData, collisionData)
+module Model exposing (Model, model, generateBricks, GameObject, GameObjectName(Brick, Paddle, Ball), CollisionData, collisionData)
 
 import Rectangle exposing (Rectangle)
 
@@ -30,6 +30,7 @@ type alias Model =
     , paddle : GameObject
     , ball : GameObject
     , bricks : List GameObject
+    , brickCount : Int
     , remainingLives : Int
     , wonGame : Bool
     }
@@ -55,13 +56,8 @@ type alias GameObject =
     }
 
 
-bricks : List GameObject
-bricks =
-    generateBricks [] 20 0 100
-
-
-generateBricks : List GameObject -> Int -> Float -> Float -> List GameObject
-generateBricks bricks total x y =
+generateBricks : List GameObject -> List String -> Int -> Float -> Float -> List GameObject
+generateBricks bricks colors total x y =
     let
         getNextX x =
             if (x == 800) then
@@ -74,7 +70,11 @@ generateBricks bricks total x y =
                 bricks
 
             _ ->
-                generateBricks (generateBrick x y :: bricks)
+                generateBricks
+                    ((generateBrick (List.head colors) x y)
+                        :: bricks
+                    )
+                    (List.drop 1 colors)
                     (total - 1)
                     (getNextX x)
                     (if (x == 800) then
@@ -84,16 +84,26 @@ generateBricks bricks total x y =
                     )
 
 
-generateBrick : Float -> Float -> GameObject
-generateBrick x y =
-    { brickTemplate
-        | x = x
-        , y = y
-        , hitbox =
-            { xs = ( x, x + 200 )
-            , ys = ( y, y + 50 )
-            }
-    }
+generateBrick : Maybe String -> Float -> Float -> GameObject
+generateBrick color x y =
+    let
+        color_ =
+            case color of
+                Just val ->
+                    val
+
+                Nothing ->
+                    "#fff"
+    in
+        { brickTemplate
+            | color = color_
+            , x = x
+            , y = y
+            , hitbox =
+                { xs = ( x, x + 200 )
+                , ys = ( y, y + 50 )
+                }
+        }
 
 
 brickTemplate : GameObject
@@ -110,7 +120,7 @@ brickTemplate =
         }
     , objectType = Brick
     , health = 100
-    , color = "rgba(66, 244, 223, "
+    , color = ""
     }
 
 
@@ -148,7 +158,8 @@ model =
         , health = 100
         , color = "white"
         }
-    , bricks = bricks
+    , bricks = []
     , remainingLives = 3
     , wonGame = False
+    , brickCount = 20
     }
