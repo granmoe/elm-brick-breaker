@@ -35,7 +35,7 @@ update msg model =
 
 generateBrickColors : Model -> Cmd Msg
 generateBrickColors model =
-    Random.generate BrickColors <| Random.list model.brickCount <| (Random.int 0 16777215)
+    Random.generate BrickColors <| Random.list model.brickCount <| (Random.int 1000000 16777215)
 
 
 generateBricks : Model -> List String -> Model
