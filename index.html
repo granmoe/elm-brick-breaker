@@ -9807,9 +9807,9 @@ var _ohanhi$elm_game_base$Model$CollisionData = F6(
 	function (a, b, c, d, e, f) {
 		return {offsetX: a, offsetY: b, vx: c, vy: d, hasCollision: e, bricks: f};
 	});
-var _ohanhi$elm_game_base$Model$Model = F8(
-	function (a, b, c, d, e, f, g, h) {
-		return {width: a, height: b, paddle: c, ball: d, bricks: e, brickCount: f, remainingLives: g, wonGame: h};
+var _ohanhi$elm_game_base$Model$Model = F9(
+	function (a, b, c, d, e, f, g, h, i) {
+		return {width: a, height: b, paddle: c, ball: d, bricks: e, brickCount: f, remainingLives: g, wonGame: h, lostGame: i};
 	});
 var _ohanhi$elm_game_base$Model$GameObject = function (a) {
 	return function (b) {
@@ -9870,6 +9870,7 @@ var _ohanhi$elm_game_base$Model$model = {
 	bricks: {ctor: '[]'},
 	remainingLives: 3,
 	wonGame: false,
+	lostGame: false,
 	brickCount: 20
 };
 var _ohanhi$elm_game_base$Model$Brick = {ctor: 'Brick'};
@@ -10499,6 +10500,11 @@ var _ohanhi$elm_game_base$Update$handleWallCollisions = function (model) {
 		model,
 		{ball: ball});
 };
+var _ohanhi$elm_game_base$Update$loseGame = function (model) {
+	return (_elm_lang$core$Native_Utils.cmp(model.ball.y, model.height - model.ball.height) > 0) ? _elm_lang$core$Native_Utils.update(
+		model,
+		{lostGame: true}) : model;
+};
 var _ohanhi$elm_game_base$Update$updateHitboxes = function (model) {
 	var updateHitbox = function (gameObject) {
 		return _elm_lang$core$Native_Utils.update(
@@ -10542,8 +10548,9 @@ var _ohanhi$elm_game_base$Update$applyPhysics = F2(
 		return _ohanhi$elm_game_base$Update$clampPositions(
 			_ohanhi$elm_game_base$Update$handleObjectCollisions(
 				_ohanhi$elm_game_base$Update$handleWallCollisions(
-					_ohanhi$elm_game_base$Update$updateHitboxes(
-						A2(_ohanhi$elm_game_base$Update$updatePositions, model, time)))));
+					_ohanhi$elm_game_base$Update$loseGame(
+						_ohanhi$elm_game_base$Update$updateHitboxes(
+							A2(_ohanhi$elm_game_base$Update$updatePositions, model, time))))));
 	});
 var _ohanhi$elm_game_base$Update$updatePaddleVelocity = F2(
 	function (paddle, vx) {
@@ -10607,47 +10614,6 @@ var _ohanhi$elm_game_base$Update$generateBricks = F2(
 					100)
 			});
 	});
-var _ohanhi$elm_game_base$Update$update = F2(
-	function (msg, model) {
-		var _p7 = msg;
-		switch (_p7.ctor) {
-			case 'TimeUpdate':
-				return {
-					ctor: '_Tuple2',
-					_0: A2(_ohanhi$elm_game_base$Update$applyPhysics, model, _p7._0),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'KeyDown':
-				return {
-					ctor: '_Tuple2',
-					_0: A2(_ohanhi$elm_game_base$Update$keyDown, _p7._0, model),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'KeyUp':
-				return {
-					ctor: '_Tuple2',
-					_0: A2(_ohanhi$elm_game_base$Update$keyUp, _p7._0, model),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			default:
-				return {
-					ctor: '_Tuple2',
-					_0: A2(
-						_ohanhi$elm_game_base$Update$generateBricks,
-						model,
-						A2(
-							_elm_lang$core$List$map,
-							function (n) {
-								return A2(
-									_elm_lang$core$Basics_ops['++'],
-									'#',
-									_rtfeldman$hex$Hex$toString(n));
-							},
-							_p7._0)),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-		}
-	});
 var _ohanhi$elm_game_base$Update$BrickColors = function (a) {
 	return {ctor: 'BrickColors', _0: a};
 };
@@ -10660,6 +10626,70 @@ var _ohanhi$elm_game_base$Update$generateBrickColors = function (model) {
 			model.brickCount,
 			A2(_elm_lang$core$Random$int, 1000000, 16777215)));
 };
+var _ohanhi$elm_game_base$Update$waitForRestart = F2(
+	function (msg, model) {
+		var _p7 = msg;
+		if (_p7.ctor === 'KeyDown') {
+			var _p8 = _ohanhi$elm_game_base$Key$fromCode(_p7._0);
+			if (_p8.ctor === 'R') {
+				return {
+					ctor: '_Tuple2',
+					_0: _ohanhi$elm_game_base$Model$model,
+					_1: _ohanhi$elm_game_base$Update$generateBrickColors(_ohanhi$elm_game_base$Model$model)
+				};
+			} else {
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			}
+		} else {
+			return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+		}
+	});
+var _ohanhi$elm_game_base$Update$update = F2(
+	function (msg, model) {
+		var _p9 = model.lostGame;
+		if (_p9 === true) {
+			return A2(_ohanhi$elm_game_base$Update$waitForRestart, msg, model);
+		} else {
+			var _p10 = msg;
+			switch (_p10.ctor) {
+				case 'TimeUpdate':
+					return {
+						ctor: '_Tuple2',
+						_0: A2(_ohanhi$elm_game_base$Update$applyPhysics, model, _p10._0),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'KeyDown':
+					return {
+						ctor: '_Tuple2',
+						_0: A2(_ohanhi$elm_game_base$Update$keyDown, _p10._0, model),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'KeyUp':
+					return {
+						ctor: '_Tuple2',
+						_0: A2(_ohanhi$elm_game_base$Update$keyUp, _p10._0, model),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				default:
+					return {
+						ctor: '_Tuple2',
+						_0: A2(
+							_ohanhi$elm_game_base$Update$generateBricks,
+							model,
+							A2(
+								_elm_lang$core$List$map,
+								function (n) {
+									return A2(
+										_elm_lang$core$Basics_ops['++'],
+										'#',
+										_rtfeldman$hex$Hex$toString(n));
+								},
+								_p10._0)),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+			}
+		}
+	});
 var _ohanhi$elm_game_base$Update$KeyUp = function (a) {
 	return {ctor: 'KeyUp', _0: a};
 };
