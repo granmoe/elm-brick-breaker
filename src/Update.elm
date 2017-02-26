@@ -19,18 +19,38 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    case model.lostGame of
+        True ->
+            waitForRestart msg model
+
+        False ->
+            case msg of
+                TimeUpdate time ->
+                    ( applyPhysics model time, Cmd.none )
+
+                KeyDown keyCode ->
+                    ( keyDown keyCode model, Cmd.none )
+
+                KeyUp keyCode ->
+                    ( keyUp keyCode model, Cmd.none )
+
+                BrickColors colors ->
+                    ( generateBricks model <| List.map (\n -> "#" ++ Hex.toString n) colors, Cmd.none )
+
+
+waitForRestart : Msg -> Model -> ( Model, Cmd Msg )
+waitForRestart msg model =
     case msg of
-        TimeUpdate time ->
-            ( applyPhysics model time, Cmd.none )
-
         KeyDown keyCode ->
-            ( keyDown keyCode model, Cmd.none )
+            case fromCode keyCode of
+                Key.R ->
+                    ( Model.model, generateBrickColors Model.model )
 
-        KeyUp keyCode ->
-            ( keyUp keyCode model, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
-        BrickColors colors ->
-            ( generateBricks model <| List.map (\n -> "#" ++ Hex.toString n) colors, Cmd.none )
+        _ ->
+            ( model, Cmd.none )
 
 
 generateBrickColors : Model -> Cmd Msg
@@ -79,7 +99,7 @@ updatePaddleVelocity paddle vx =
 
 applyPhysics : Model -> Float -> Model
 applyPhysics model time =
-    updatePositions model time |> updateHitboxes |> handleWallCollisions |> handleObjectCollisions |> clampPositions
+    updatePositions model time |> updateHitboxes |> loseGame |> handleWallCollisions |> handleObjectCollisions |> clampPositions
 
 
 updatePositions : Model -> Float -> Model
@@ -127,6 +147,16 @@ updateHitboxes model =
             | paddle = paddle
             , ball = ball
         }
+
+
+loseGame : Model -> Model
+loseGame model =
+    if model.ball.y > (model.height - model.ball.height) then
+        { model
+            | lostGame = True
+        }
+    else
+        model
 
 
 handleWallCollisions : Model -> Model

@@ -33,6 +33,7 @@ type alias Model =
     , brickCount : Int
     , remainingLives : Int
     , wonGame : Bool
+    , lostGame : Bool
     }
 
 
@@ -161,5 +162,6 @@ model =
     , bricks = []
     , remainingLives = 3
     , wonGame = False
+    , lostGame = False
     , brickCount = 20
     }
