@@ -1,7 +1,7 @@
 module Model exposing (Model, model, generateBricks, GameObject, GameObjectName(Brick, Paddle, Ball), CollisionData, collisionData)
 
 import Rectangle exposing (Rectangle)
-import Config exposing (config)
+import Config exposing (config, GameProgress)
 
 
 type alias CollisionData =
@@ -33,8 +33,7 @@ type alias Model =
     , bricks : List GameObject
     , brickCount : Int
     , remainingLives : Int
-    , wonGame : Bool
-    , lostGame : Bool
+    , gameProgress : GameProgress
     }
 
 
@@ -171,8 +170,7 @@ model =
         , color = config.ballColor
         }
     , bricks = []
-    , remainingLives = config.startingLives
-    , wonGame = False
-    , lostGame = False
+    , remainingLives = config.remainingLives
     , brickCount = config.brickCount
+    , gameProgress = config.gameProgress
     }

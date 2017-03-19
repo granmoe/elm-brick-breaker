@@ -8,6 +8,7 @@ import Time exposing (Time)
 import Model exposing (model, Model, GameObject, generateBricks, collisionData, CollisionData, GameObjectName(Brick, Paddle, Ball))
 import Key exposing (fromCode)
 import Rectangle exposing (rectangleIntersection)
+import Config exposing (GameProgress(..))
 
 
 type Msg
@@ -19,11 +20,20 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case model.lostGame of
-        True ->
+    case model.gameProgress of
+        Won ->
             waitForRestart msg model
 
-        False ->
+        Lost ->
+            waitForTryAgain msg model
+
+        BeatLevelOne ->
+            waitForTryAgain msg model
+
+        BeatLevelTwo ->
+            waitForTryAgain msg model
+
+        Playing ->
             case msg of
                 TimeUpdate time ->
                     ( applyPhysics model time, Cmd.none )
@@ -38,8 +48,17 @@ update msg model =
                     ( generateBricks model <| List.map (\n -> "#" ++ Hex.toString n) colors, Cmd.none )
 
 
+
+-- TODO: Logic for decrementing remainingLives on restart, going to next level depending on gameProgress, starting the game over if won game or lost game
+
+
 waitForRestart : Msg -> Model -> ( Model, Cmd Msg )
 waitForRestart msg model =
+    ( model, Cmd.none )
+
+
+waitForTryAgain : Msg -> Model -> ( Model, Cmd Msg )
+waitForTryAgain msg model =
     case msg of
         KeyDown keyCode ->
             case fromCode keyCode of
@@ -153,7 +172,7 @@ loseGame : Model -> Model
 loseGame model =
     if model.ball.y > (model.height - model.ball.height) then
         { model
-            | lostGame = True
+            | gameProgress = Lost
         }
     else
         -- check if no bricks, set to next level

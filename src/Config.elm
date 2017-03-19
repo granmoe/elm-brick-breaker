@@ -1,4 +1,12 @@
-module Config exposing (config)
+module Config exposing (config, GameProgress(..))
+
+
+type GameProgress
+    = Playing
+    | Won
+    | Lost
+    | BeatLevelOne
+    | BeatLevelTwo
 
 
 type alias Config =
@@ -19,7 +27,8 @@ type alias Config =
     , gameWidth : Float
     , gameHeight : Float
     , brickCount : Int
-    , startingLives : Int
+    , remainingLives : Int
+    , gameProgress : GameProgress
     }
 
 
@@ -30,11 +39,11 @@ config =
     , brickHealth = 100
     , defaultBrickColor = "#fff"
     , paddleWidth = 200
-    , paddleHeight = 25
-    , paddleInitY = 940
+    , paddleHeight = 35
+    , paddleInitY = 930
     , paddleHealth = 100
     , paddleColor = "gainsboro"
-    , ballDiameter = 10
+    , ballDiameter = 15
     , ballInitY = 600
     , ballHealth = 100
     , ballColor = "white"
@@ -42,7 +51,8 @@ config =
     , gameWidth = 1000
     , gameHeight = 1000
     , brickCount = 20
-    , startingLives = 3
+    , remainingLives = 3
+    , gameProgress = Playing
     }
 
 
