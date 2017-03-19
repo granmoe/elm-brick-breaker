@@ -1,6 +1,7 @@
 module Model exposing (Model, model, generateBricks, GameObject, GameObjectName(Brick, Paddle, Ball), CollisionData, collisionData)
 
 import Rectangle exposing (Rectangle)
+import Config exposing (config)
 
 
 type alias CollisionData =
@@ -61,10 +62,10 @@ generateBricks : List GameObject -> List String -> Int -> Float -> Float -> List
 generateBricks bricks colors total x y =
     let
         getNextX x =
-            if (x == 800) then
+            if (x >= config.gameWidth - config.brickWidth) then
                 0
             else
-                x + 200
+                x + config.brickWidth
     in
         case total of
             0 ->
@@ -78,8 +79,8 @@ generateBricks bricks colors total x y =
                     (List.drop 1 colors)
                     (total - 1)
                     (getNextX x)
-                    (if (x == 800) then
-                        y + 50
+                    (if (x >= config.gameWidth - config.brickWidth) then
+                        y + config.brickHeight
                      else
                         y
                     )
@@ -94,15 +95,15 @@ generateBrick color x y =
                     val
 
                 Nothing ->
-                    "#fff"
+                    config.defaultBrickColor
     in
         { brickTemplate
             | color = color_
             , x = x
             , y = y
             , hitbox =
-                { xs = ( x, x + 200 )
-                , ys = ( y, y + 50 )
+                { xs = ( x, x + config.brickWidth )
+                , ys = ( y, y + config.brickHeight )
                 }
         }
 
@@ -113,55 +114,65 @@ brickTemplate =
     , y = 0
     , vx = 0
     , vy = 0
-    , width = 200
-    , height = 50
+    , width = config.brickWidth
+    , height = config.brickHeight
     , hitbox =
         { xs = ( 0, 0 )
         , ys = ( 0, 0 )
         }
     , objectType = Brick
-    , health = 100
+    , health = config.brickHealth
     , color = ""
     }
 
 
+paddleInitX : Float
+paddleInitX =
+    (config.gameWidth / 2) - (config.paddleWidth / 2)
+
+
+ballInitX : Float
+ballInitX =
+    (config.gameWidth / 2) - (config.ballDiameter / 2)
+
+
 model : Model
 model =
-    { width = 1000
-    , height = 1000
+    { width = config.gameWidth
+    , height = config.gameHeight
     , paddle =
-        { x = 400
-        , y = 940
+        { x = paddleInitX
+        , y = config.paddleInitY
         , vx = 0
         , vy = 0
-        , width = 200
-        , height = 25
+        , width = config.paddleWidth
+        , height = config.paddleHeight
         , hitbox =
-            { xs = ( 400, 600 )
-            , ys = ( 940, 965 )
+            { xs = ( paddleInitX, paddleInitX + config.paddleWidth )
+            , ys = ( config.paddleInitY, config.paddleInitY + config.paddleHeight )
             }
         , objectType = Paddle
-        , health = 100
-        , color = "gainsboro"
+        , health = config.paddleHealth
+        , color = config.paddleColor
         }
     , ball =
-        { x = 500
-        , y = 600
+        { x = ballInitX
+        , y = config.ballInitY
         , vx = 0
-        , vy = 7
-        , width = 10
-        , height = 10
+        , vy = config.ballInitVY
+        , width = config.ballDiameter
+        , height = config.ballDiameter
         , hitbox =
-            { xs = ( 500, 510 )
-            , ys = ( 600, 610 )
+            { xs = ( ballInitX, ballInitX + config.ballDiameter )
+            , ys = ( config.ballInitY, config.ballInitY + config.ballDiameter )
             }
         , objectType = Ball
-        , health = 100
-        , color = "white"
+        , health = config.ballHealth
+        , color = config.ballColor
         }
     , bricks = []
-    , remainingLives = 3
+    , remainingLives = config.startingLives
     , wonGame = False
     , lostGame = False
-    , brickCount = 20
+    , brickCount = config.brickCount
     }

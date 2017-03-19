@@ -156,6 +156,7 @@ loseGame model =
             | lostGame = True
         }
     else
+        -- check if no bricks, set to next level
         model
 
 
