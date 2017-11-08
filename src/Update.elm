@@ -20,53 +20,25 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case model.gameProgress of
-        Won ->
-            waitForRestart msg model
-
-        Lost ->
-            waitForTryAgain msg model
-
-        BeatLevelOne ->
-            waitForTryAgain msg model
-
-        BeatLevelTwo ->
-            waitForTryAgain msg model
-
-        Playing ->
-            case msg of
-                TimeUpdate time ->
-                    ( applyPhysics model time, Cmd.none )
-
-                KeyDown keyCode ->
-                    ( keyDown keyCode model, Cmd.none )
-
-                KeyUp keyCode ->
-                    ( keyUp keyCode model, Cmd.none )
-
-                BrickColors colors ->
-                    ( generateBricks model <| List.map (\n -> "#" ++ Hex.toString n) colors, Cmd.none )
+    if (model.gameProgress == Lost) then
+        waitForTryAgain msg model
+    else
+        let
+            newModel =
+                generateBricks msg <| handleInput msg <| applyPhysics msg model
+        in
+            ( newModel, Cmd.none )
 
 
 
 -- TODO: Logic for decrementing remainingLives on restart, going to next level depending on gameProgress, starting the game over if won game or lost game
 
 
-waitForRestart : Msg -> Model -> ( Model, Cmd Msg )
-waitForRestart msg model =
-    ( model, Cmd.none )
-
-
 waitForTryAgain : Msg -> Model -> ( Model, Cmd Msg )
 waitForTryAgain msg model =
     case msg of
         KeyDown keyCode ->
-            case fromCode keyCode of
-                Key.R ->
-                    ( Model.model, generateBrickColors Model.model )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( Model.model, generateBrickColors Model.model )
 
         _ ->
             ( model, Cmd.none )
@@ -77,9 +49,31 @@ generateBrickColors model =
     Random.generate BrickColors <| Random.list model.brickCount <| (Random.int 1000000 16777215)
 
 
-generateBricks : Model -> List String -> Model
-generateBricks model colors =
-    { model | bricks = Model.generateBricks [] colors 20 0 100 }
+generateBricks : Msg -> Model -> Model
+generateBricks msg model =
+    let
+        createBricks model colors =
+            { model | bricks = Model.generateBricks [] colors 20 0 100 }
+    in
+        case msg of
+            BrickColors colors ->
+                createBricks model <| List.map (\n -> "#" ++ Hex.toString n) colors
+
+            _ ->
+                model
+
+
+handleInput : Msg -> Model -> Model
+handleInput msg model =
+    case msg of
+        KeyDown keyCode ->
+            keyDown keyCode model
+
+        KeyUp keyCode ->
+            keyUp keyCode model
+
+        _ ->
+            model
 
 
 keyDown : KeyCode -> Model -> Model
@@ -116,9 +110,14 @@ updatePaddleVelocity paddle vx =
     { paddle | vx = vx }
 
 
-applyPhysics : Model -> Float -> Model
-applyPhysics model time =
-    updatePositions model time |> updateHitboxes |> loseGame |> handleWallCollisions |> handleObjectCollisions |> clampPositions
+applyPhysics : Msg -> Model -> Model
+applyPhysics msg model =
+    case msg of
+        TimeUpdate time ->
+            updatePositions model time |> updateHitboxes |> loseGame |> handleWallCollisions |> handleObjectCollisions |> clampPositions
+
+        _ ->
+            model
 
 
 updatePositions : Model -> Float -> Model

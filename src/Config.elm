@@ -5,8 +5,6 @@ type GameProgress
     = Playing
     | Won
     | Lost
-    | BeatLevelOne
-    | BeatLevelTwo
 
 
 type alias Config =
